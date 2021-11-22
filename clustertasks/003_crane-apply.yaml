@@ -1,0 +1,33 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: crane-apply
+  annotations:
+    description: |
+      This is where a really long-form explanation of what is happening in
+      crane-apply ClusterTask would go.
+spec:
+  steps:
+    - name: crane-apply
+      image: quay.io/djzager/crane-runner:hello-crane
+      script: |
+        # TODO(djzager): Should convert this to command & args
+        /crane apply \
+          --export-dir=$(workspaces.export.path) \
+          --transform-dir=$(workspaces.transform.path) \
+          --output-dir=$(workspaces.apply.path)
+        find $(workspaces.apply.path)
+  # https://github.com/tektoncd/pipeline/blob/main/docs/workspaces.md#using-workspaces-in-tasks
+  workspaces:
+    - name: export
+      description: |
+        This is the folder where the results of crane export were stored.
+      mountPath: /var/crane/export
+    - name: transform
+      description: |
+        This is the folder where we will store the results of crane transform.
+      mountPath: /var/crane/transform
+    - name: apply
+      description: |
+        This is the folder where we will store the results of crane apply.
+      mountPath: /var/crane/apply

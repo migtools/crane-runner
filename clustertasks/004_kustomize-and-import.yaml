@@ -1,0 +1,53 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: kustomize-and-import
+  annotations:
+    description: |
+      This is where a really long-form explanation of what is happening in
+      kustomize-and-import ClusterTask would go.
+spec:
+  # These are all required parameters to the task when we write a Pipeline using
+  # this task, we must ensure that these parameters are supplied.
+  params:
+    - name: src-namespace
+      type: string
+      description: The namespace from the source cluster to export.
+    - name: dest-context
+      type: string
+      description: The context from the kubeconfig that represents the destination cluster.
+    - name: dest-namespace
+      type: string
+      description: The namespace we are importing to.
+  steps:
+    - name: crane-import
+      image: quay.io/djzager/crane-runner:hello-crane
+      script: |
+        # Move to where all the applicable resources can be found
+        pushd $(workspaces.apply.path)/resources
+        # Find the resources
+        yamls=$(find . -type f -name \*.yaml)
+
+        # Make a kustomization.yaml, use the namespace transformer
+        # to make sure we apply to the namespace provided
+        echo "namespace: $(params.dest-namespace)" > ./kustomization.yaml
+        echo "resources:" >> ./kustomization.yaml
+        # Add all the resources that we found to the kustomization
+        for file in ${yamls}; do echo "- ${file}" >> ./kustomization.yaml; done
+
+        # So we can see what's happening
+        cat kustomization.yaml
+        # Import them using kustomize
+        oc --context $(params.dest-context) apply -k ./
+      env:
+        - name: KUBECONFIG
+          value: $(workspaces.kubeconfig.path)/config
+  # https://github.com/tektoncd/pipeline/blob/main/docs/workspaces.md#using-workspaces-in-tasks
+  workspaces:
+    - name: apply
+      description: |
+        This is the folder where we will store the results of crane apply.
+      mountPath: /var/crane/apply
+    - name: kubeconfig
+      description: |
+        The user's kubeconfig

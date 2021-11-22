@@ -1,0 +1,47 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: crane-export
+  annotations:
+    description: |
+      This is where a really long-form explanation of what is happening in
+      crane-export ClusterTask would go.
+spec:
+  # These are all required parameters to the task when we write a Pipeline using
+  # this task, we must ensure that these parameters are supplied.
+  params:
+    - name: src-namespace
+      type: string
+      description: The namespace from the source cluster to export.
+    - name: src-context
+      type: string
+      description: The context from the kubeconfig that represents the source cluster.
+  steps:
+    - name: crane-export
+      image: quay.io/djzager/crane-runner:hello-crane
+      script: |
+        # Workspaces referencing secrets are read only, so we can't run anything like
+        # kubectl config use-context as that would fail the task. Instead we just
+        # create a whole new config to make sure we are using the correct context
+        kubectl --context $(params.src-context) config view --flatten --minify > kubeconfig
+        export KUBECONFIG=$(pwd)/kubeconfig
+        /crane export \
+          --namespace=$(params.src-namespace) \
+          --export-dir=$(workspaces.export.path) \
+          --context=$(params.src-context)
+
+        # Do this so we have some breadcrumbs in case our demo blows up
+        find $(workspaces.export.path)
+        find $(workspaces.export.path)/failures/ -type f -exec cat {} \;
+      env:
+        - name: KUBECONFIG
+          value: $(workspaces.kubeconfig.path)/config
+  # https://github.com/tektoncd/pipeline/blob/main/docs/workspaces.md#using-workspaces-in-tasks
+  workspaces:
+    - name: export
+      description: |
+        This is the folder where we will store the results of crane export.
+      mountPath: /var/crane/export
+    - name: kubeconfig
+      description: |
+        The user's kubeconfig
