@@ -1,0 +1,54 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: crane-runner-export
+  annotations:
+    migration.openshift.io/placeholder: "true"
+    description: |
+      Export all of the resources from a given cluster's namespace.
+spec:
+  params:
+    - name: src-context-name
+      type: string
+      description: |
+        The name of the context from kubeconfig representing the source
+        cluster.
+
+        You can get this information in your current environment using
+        `kubectl config get-contexts` to describe your one or many
+        contexts.
+    - name: src-namespace
+      type: string
+      description: |
+        The source cluster namespace from which to export resources.
+  steps:
+    - name: crane-export
+      image: djzager/crane-runner
+      script: |
+        # Workspaces referencing secrets are read only, so we can't run
+        # anything like kubectl config use-context as that would fail
+        # the task. Instead we just create a whole new config to make
+        # sure we are using the correct context
+        # TODO(djzager): remove when `crane export` can handle context + namespace
+        kubectl --context $(params.src-context-name) config view --flatten --minify > kubeconfig
+        export KUBECONFIG=$(pwd)/kubeconfig
+
+        /crane export \
+          --context=$(params.src-context-name)
+          --namespace=$(params.src-namespace) \
+          --export-dir=$(workspaces.export.path) \
+
+        # Do this so we have some breadcrumbs in case our demo blows up
+        find $(workspaces.export.path)
+      env:
+        - name: KUBECONFIG
+          value: $(workspaces.kubeconfig.path)/config
+  workspaces:
+    - name: export
+      description: |
+        Directory where results of crane export will be stored for future use
+        in other tasks.
+      mountPath: /var/crane/export
+    - name: kubeconfig
+      description: |
+        The kubeconfig for accessing the source cluster.

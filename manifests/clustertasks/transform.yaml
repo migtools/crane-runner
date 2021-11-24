@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: crane-transform
+  name: crane-runner-transform
   annotations:
     description: |
       This is where a really long-form explanation of what is happening in
@@ -9,7 +9,7 @@ metadata:
 spec:
   steps:
     - name: crane-transform
-      image: quay.io/djzager/crane-runner:hello-crane
+      image: djzager/crane-runner
       script: |
         /crane version
         /crane transform \
@@ -23,10 +23,6 @@ spec:
         find $(workspaces.ignored-patches.path)
   # https://github.com/tektoncd/pipeline/blob/main/docs/workspaces.md#using-workspaces-in-tasks
   workspaces:
-    - name: ignored-patches
-      description: |
-        This is the folder where the results of crane ignored-patches were stored.
-      mountPath: /var/crane/ignored-patches
     - name: export
       description: |
         This is the folder where the results of crane export were stored.
@@ -35,7 +31,13 @@ spec:
       description: |
         This is the folder where we will store the results of crane transform.
       mountPath: /var/crane/transform
+    - name: ignored-patches
+      description: |
+        This is the folder where the results of crane ignored-patches were stored.
+      mountPath: /var/crane/ignored-patches
+      optional: true
     - name: craneconfig
       description: |
         This is where we hold the configuration file for crane.
       mountPath: /var/crane/config
+      optional: true

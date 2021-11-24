@@ -3,13 +3,14 @@ kind: ClusterTask
 metadata:
   name: crane-apply
   annotations:
+    migration.openshift.io/run-after: "crane-transform"
     description: |
       This is where a really long-form explanation of what is happening in
       crane-apply ClusterTask would go.
 spec:
   steps:
     - name: crane-apply
-      image: quay.io/djzager/crane-runner:hello-crane
+      image: djzager/crane-runner
       script: |
         # TODO(djzager): Should convert this to command & args
         /crane apply \
