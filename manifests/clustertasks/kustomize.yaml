@@ -21,7 +21,7 @@ spec:
       description: The namespace we are importing to.
   steps:
     - name: crane-import
-      image: djzager/crane-runner
+      image: quay.io/djzager/crane-runner:latest
       script: |
         # Move to where all the applicable resources can be found
         pushd $(workspaces.apply.path)/resources

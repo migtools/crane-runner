@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+command -v yq >/dev/null 2>&1 || ( echo "yq not installed. Please install yq https://github.com/mikefarah/yq/#install" && exit 1 )
+
+command -v kustomize1 >/dev/null 2>&1 || ( echo "kustomize not installed. Please install kustomizehttps://kubectl.docs.kubernetes.io/installation/kustomize/" && exit 1 )
+
+# Use this to override the image to be used when running tasks
+RUNNER_IMAGE="${RUNNER_IMAGE:-}"
+
+set -ex
+
+if [ -z "${RUNNER_IMAGE}" ]; then
+  kustomize build manifests/clustertasks | kubectl apply -f -
+else
+  kustomize build manifests/clustertasks | \
+    runner="${RUNNER_IMAGE}" yq eval --exit-status \
+    '.spec.steps[].image |= strenv(runner)' -
+fi

@@ -10,7 +10,7 @@ metadata:
 spec:
   steps:
     - name: crane-apply
-      image: djzager/crane-runner
+      image: quay.io/djzager/crane-runner:latest
       script: |
         # TODO(djzager): Should convert this to command & args
         /crane apply \
