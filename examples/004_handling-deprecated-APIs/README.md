@@ -15,5 +15,5 @@ single Tekton Pipeline.
 * Apply Crane Runner ClusterTask manifests.
 * Attempt to migrate application via Tekton PipelineRun. It will fail to apply
     because of unsupported API versions.
-* Apply Tekton PipelineRun that includes kubectl-convert step to completely
-    migrate the application.
+* Create [Tekton PipelineRun](https://tekton.dev/docs/pipelines/pipelineruns/)
+    that includes kubectl-convert step to completely migrate the application.

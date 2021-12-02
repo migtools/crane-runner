@@ -13,5 +13,5 @@ Crane's export, transform, and apply functionality will be demonstrated.
 * Startup Guestbook application in "source" cluster.
 * Startup Tekton in "destination" cluster.
 * Apply Crane Runner ClusterTask manifests.
-* Create [Tekton PipelineRun](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
+* Create [Tekton PipelineRun](https://tekton.dev/docs/pipelines/pipelineruns/)
     that mirrors the Guestbook application to the "destination" cluster.

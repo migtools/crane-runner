@@ -16,7 +16,7 @@ the application into ArgoCD.
 * Apply Crane Runner ClusterTask manifests.
 * Startup ArgoCD in "destination" cluster.
 * Create a GitHub repository to store our results from `crane`.
-* Create [Tekton PipelineRun](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
+* Create [Tekton PipelineRun](https://tekton.dev/docs/pipelines/pipelineruns/)
     that prepares application from "source" cluster and commits them to the
     created GitHub repository.
 * Bring the application into "destination" cluster using ArgoCD.

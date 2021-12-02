@@ -19,5 +19,5 @@ Mirror](../001_stateless-app-mirror/), then you can skip to ...
 * Startup Guestbook application in "source" cluster.
 * Startup Tekton in "destination" cluster.
 * Apply Crane Runner ClusterTask manifests.
-* Create [Tekton PipelineRun](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
+* Create [Tekton PipelineRun](https://tekton.dev/docs/pipelines/pipelineruns/)
     that migrates the Guestbook application.
