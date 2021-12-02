@@ -26,7 +26,7 @@ kubectl --namespace tekton-pipelines wait --for=condition=ready pod --selector=a
 Now install our Tekton related manifests:
 
 ```shell
-kustomize build github.com/djzager/crane-runner/manifests?ref=master | kubectl apply -f -
+kustomize build github.com/konveyor/crane-runner/manifests?ref=master | kubectl apply -f -
 ```
 
 ## Getting Started
@@ -34,4 +34,3 @@ kustomize build github.com/djzager/crane-runner/manifests?ref=master | kubectl a
 With Tekton installed and the crane-runner manifests applied, check out
 [our Examples](./examples) to start working through your first
 migration with crane-runner.
->>>>>>> d4db56d (docs: add readme)
