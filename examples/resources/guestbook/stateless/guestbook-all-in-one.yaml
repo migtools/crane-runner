@@ -42,6 +42,12 @@ spec:
             memory: 100Mi
         ports:
         - containerPort: 6379
+        volumeMounts:
+          - name: redis-master-data
+            mountPath: /data
+      volumes:
+        - name: redis-master-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -94,6 +100,12 @@ spec:
           value: env
         ports:
         - containerPort: 6379
+        volumeMounts:
+          - name: redis-slave-data
+            mountPath: /data
+      volumes:
+        - name: redis-slave-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
