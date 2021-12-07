@@ -3,8 +3,9 @@ kind: Kustomization
 commonLabels:
   app: crane-runner
 resources:
-  - export.yaml
-  - transform.yaml
-  - apply.yaml
+  - crane-export.yaml
+  - crane-transform.yaml
+  - crane-apply.yaml
+  - kubectl-apply.yaml
   - kustomize.yaml
   # - load.yaml

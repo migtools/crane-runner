@@ -1,14 +1,14 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: crane-runner-export
+  name: crane-export
   annotations:
     migration.openshift.io/placeholder: "true"
     description: |
       Export all of the resources from a given cluster's namespace.
 spec:
   params:
-    - name: src-context-name
+    - name: src-context
       type: string
       description: |
         The name of the context from kubeconfig representing the source
@@ -30,11 +30,11 @@ spec:
         # the task. Instead we just create a whole new config to make
         # sure we are using the correct context
         # TODO(djzager): remove when `crane export` can handle context + namespace
-        kubectl --context $(params.src-context-name) config view --flatten --minify > kubeconfig
+        kubectl --context $(params.src-context) config view --flatten --minify > kubeconfig
         export KUBECONFIG=$(pwd)/kubeconfig
 
         /crane export \
-          --context=$(params.src-context-name)
+          --context=$(params.src-context) \
           --namespace=$(params.src-namespace) \
           --export-dir=$(workspaces.export.path) \
 

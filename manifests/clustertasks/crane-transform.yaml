@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: crane-runner-transform
+  name: crane-transform
   annotations:
     description: |
       This is where a really long-form explanation of what is happening in
@@ -20,7 +20,9 @@ spec:
 
         # Do this so we have some breadcrumbs in case our demo blows up
         find $(workspaces.transform.path)
-        find $(workspaces.ignored-patches.path)
+        if [ "$(workspaces.ignored-patches.bound)" == "true" ]; then
+          find $(workspaces.ignored-patches.path)
+        fi
   # https://github.com/tektoncd/pipeline/blob/main/docs/workspaces.md#using-workspaces-in-tasks
   workspaces:
     - name: export
