@@ -13,10 +13,12 @@ RUN /crane plugin-manager add OpenshiftPlugin
 
 # Helpful tools
 # TODO(djzager): Determine want can stay and what must go
-RUN curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz | \
+RUN curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz" | \
     tar xvzf - -C /usr/bin/ oc kubectl
-RUN curl -L https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_amd64.tar.gz | \
+RUN curl -sL "https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_amd64.tar.gz" | \
     tar xvzf - -C /usr/bin/ ./yq_linux_amd64 && \
     mv /usr/bin/yq_linux_amd64 /usr/bin/yq
+RUN curl -Ls "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v4.4.1/kustomize_v4.4.1_linux_amd64.tar.gz" | \
+    tar xvzf - -C /usr/bin/ kustomize
 
 CMD ["/crane"]

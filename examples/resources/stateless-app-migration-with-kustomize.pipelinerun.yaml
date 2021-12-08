@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  generateName: stateless-app-mirror-example-
+  generateName: hello-kustomize-
 spec:
   params:
     - name: src-namespace
@@ -10,7 +10,7 @@ spec:
       value: src
     - name: dest-context
       value: dest
-  pipelineSpec: # equivalent to Pipeline.Spec
+  pipelineSpec:
     # All the parameters used by this pipeline
     params:
       - name: src-namespace
@@ -23,23 +23,23 @@ spec:
       # All the workspaces used in the pipeline
       - name: shared-data
       - name: kubeconfig
-      - name: craneconfig
     tasks:
       - name: export
+        params:
+          - name: src-context
+            value: "$(params.src-context)"
+          - name: src-namespace
+            value: "$(params.src-namespace)"
         taskRef:
           name: crane-export
           kind: ClusterTask
-        params:
-          - name: src-namespace
-            value: "$(params.src-namespace)"
-          - name: src-context
-            value: "$(params.src-context)"
         workspaces:
           - name: export
             workspace: shared-data
             subPath: export
           - name: kubeconfig
             workspace: kubeconfig
+
       - name: transform
         # https://tekton.dev/docs/pipelines/pipelines/#using-the-runafter-parameter
         # We are using this to enforce ordering on task executions
@@ -49,18 +49,13 @@ spec:
           name: crane-transform
           kind: ClusterTask
         workspaces:
-          - name: ignored-patches
-            workspace: shared-data
-            subPath: ignored-patches
           - name: export
             workspace: shared-data
             subPath: export
           - name: transform
             workspace: shared-data
             subPath: transform
-          - name: craneconfig
-            workspace: craneconfig
-            subPath: config
+
       - name: apply
         # https://tekton.dev/docs/pipelines/pipelines/#using-the-runafter-parameter
         # We are using this to enforce ordering on task executions
@@ -79,23 +74,44 @@ spec:
           - name: apply
             workspace: shared-data
             subPath: apply
-      - name: kubectl-apply
+
+      - name: kustomize
         # https://tekton.dev/docs/pipelines/pipelines/#using-the-runafter-parameter
         # We are using this to enforce ordering on task executions
         runAfter:
           - apply
         taskRef:
-          name: kubectl-apply
+          name: kustomize-namespace
+          kind: ClusterTask
+        params:
+          - name: dest-namespace
+            value: "$(context.pipelineRun.namespace)"
+        workspaces:
+          - name: apply
+            workspace: shared-data
+            subPath: apply
+          - name: kustomize
+            workspace: shared-data
+            subPath: kustomize
+
+      - name: kubectl-apply-kustomize
+        # https://tekton.dev/docs/pipelines/pipelines/#using-the-runafter-parameter
+        # We are using this to enforce ordering on task executions
+        runAfter:
+          - kustomize
+        taskRef:
+          name: kubectl-apply-kustomize
           kind: ClusterTask
         params:
           - name: dest-context
             value: "$(params.dest-context)"
         workspaces:
-          - name: apply
+          - name: kustomize
             workspace: shared-data
-            subPath: apply
+            subPath: kustomize
           - name: kubeconfig
             workspace: kubeconfig
+
   workspaces:
     # This is where we map physical volumes (pvc, secret, configmap) to
     # workspaces that can be used by the specific tasks in the pipeline.
@@ -111,7 +127,3 @@ spec:
     - name: kubeconfig
       secret:
         secretName: kubeconfig
-    # ConfigMap volumes are read only
-    - name: craneconfig
-      configmap:
-        name: craneconfig

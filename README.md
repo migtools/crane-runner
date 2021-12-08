@@ -26,7 +26,7 @@ kubectl --namespace tekton-pipelines wait --for=condition=ready pod --selector=a
 Now install our Tekton related manifests:
 
 ```shell
-kustomize build github.com/konveyor/crane-runner/manifests?ref=master | kubectl apply -f -
+kustomize build github.com/konveyor/crane-runner/manifests\?ref=master | kubectl apply -f -
 ```
 
 ## Getting Started
