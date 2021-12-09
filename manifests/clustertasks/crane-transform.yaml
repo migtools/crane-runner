@@ -1,0 +1,45 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: crane-transform
+  annotations:
+    description: |
+      This is where a really long-form explanation of what is happening in
+      crane-transform ClusterTask would go.
+spec:
+  steps:
+    - name: crane-transform
+      image: quay.io/konveyor/crane-runner:latest
+      script: |
+        /crane version
+        /crane transform \
+          --ignored-patches-dir=$(workspaces.ignored-patches.path) \
+          --config-file=$(workspaces.craneconfig.path) \
+          --export-dir=$(workspaces.export.path) \
+          --transform-dir=$(workspaces.transform.path)
+
+        # Do this so we have some breadcrumbs in case our demo blows up
+        find $(workspaces.transform.path)
+        if [ "$(workspaces.ignored-patches.bound)" == "true" ]; then
+          find $(workspaces.ignored-patches.path)
+        fi
+  # https://github.com/tektoncd/pipeline/blob/main/docs/workspaces.md#using-workspaces-in-tasks
+  workspaces:
+    - name: export
+      description: |
+        This is the folder where the results of crane export were stored.
+      mountPath: /var/crane/export
+    - name: transform
+      description: |
+        This is the folder where we will store the results of crane transform.
+      mountPath: /var/crane/transform
+    - name: ignored-patches
+      description: |
+        This is the folder where the results of crane ignored-patches were stored.
+      mountPath: /var/crane/ignored-patches
+      optional: true
+    - name: craneconfig
+      description: |
+        This is where we hold the configuration file for crane.
+      mountPath: /var/crane/config
+      optional: true

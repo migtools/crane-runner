@@ -1,0 +1,51 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: git-init-push
+  annotations:
+    description: |
+      This is a lazy task that just takes a workspace, runs git init and adds
+      a remote url before pushing it.
+      It's expected that the serviceAccount used to run this task has the
+      authentication credentials for the git repo.
+      See https://tekton.dev/docs/pipelines/auth/#basic-auth-for-git for
+      details.
+spec:
+  # These are all required parameters to the task when we write a Pipeline using
+  # this task, we must ensure that these parameters are supplied.
+  params:
+    - name: git-remote-url
+      type: string
+      description: Git remote url
+    - name: user-name
+      type: string
+      description: Git user.name
+    - name: user-email
+      type: string
+      description: Git user.email
+  steps:
+    - name: git-init-push
+      image: quay.io/konveyor/crane-runner:latest
+      script: |
+        git config --global user.email "$(params.user-email)"
+        git config --global user.name "$(params.user-name)"
+
+        # TODO(djzager): Have a discussion to see if this is the kind of ClusterTask
+        # we want to support in this project. If we are going to support it,
+        # we should do better than blindly force push to a repo.
+        cd "$(workspaces.uninitialized-git-repo.path)"
+
+        # In case we are running again after failed attempt
+        rm -rf .git
+
+        # The actual lazy push
+        git init .
+        git remote add origin "$(params.git-remote-url)"
+        git add .
+        git commit -m "commit from git-init-push ClusterTask"
+        git push -fu origin HEAD
+  # https://github.com/tektoncd/pipeline/blob/main/docs/workspaces.md#using-workspaces-in-tasks
+  workspaces:
+    - name: uninitialized-git-repo
+      description: |
+        This is the location of the uninitialized git repository to be pushed.
