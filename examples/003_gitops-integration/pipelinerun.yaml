@@ -1,0 +1,102 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: guestbook-gitops-example-
+spec:
+  params:
+    - name: src-namespace
+      value: guestbook
+    - name: src-context
+      value: src
+  pipelineSpec:
+    # All the parameters used by this pipeline
+    params:
+      - name: src-namespace
+        type: string
+      - name: src-context
+        type: string
+    workspaces:
+      # All the workspaces used in the pipeline
+      - name: shared-data
+      - name: kubeconfig
+    tasks:
+      - name: export
+        params:
+          - name: src-context
+            value: "$(params.src-context)"
+          - name: src-namespace
+            value: "$(params.src-namespace)"
+        taskRef:
+          name: crane-export
+          kind: ClusterTask
+        workspaces:
+          - name: export
+            workspace: shared-data
+            subPath: export
+          - name: kubeconfig
+            workspace: kubeconfig
+
+      - name: transform
+        # https://tekton.dev/docs/pipelines/pipelines/#using-the-runafter-parameter
+        # We are using this to enforce ordering on task executions
+        runAfter:
+          - export
+        taskRef:
+          name: crane-transform
+          kind: ClusterTask
+        workspaces:
+          - name: export
+            workspace: shared-data
+            subPath: export
+          - name: transform
+            workspace: shared-data
+            subPath: transform
+
+      - name: apply
+        # https://tekton.dev/docs/pipelines/pipelines/#using-the-runafter-parameter
+        # We are using this to enforce ordering on task executions
+        runAfter:
+          - transform
+        taskRef:
+          name: crane-apply
+          kind: ClusterTask
+        workspaces:
+          - name: export
+            workspace: shared-data
+            subPath: export
+          - name: transform
+            workspace: shared-data
+            subPath: transform
+          - name: apply
+            workspace: shared-data
+            subPath: apply
+
+      - name: kustomize
+        # https://tekton.dev/docs/pipelines/pipelines/#using-the-runafter-parameter
+        # We are using this to enforce ordering on task executions
+        runAfter:
+          - apply
+        taskRef:
+          name: kustomize-namespace
+          kind: ClusterTask
+        params:
+          - name: dest-namespace
+            value: "$(context.pipelineRun.namespace)"
+        workspaces:
+          - name: apply
+            workspace: shared-data
+            subPath: apply
+          - name: kustomize
+            workspace: shared-data
+            subPath: kustomize
+
+  workspaces:
+    # This is where we map physical volumes (pvc, secret, configmap) to
+    # workspaces that can be used by the specific tasks in the pipeline.
+    - name: shared-data
+      persistentVolumeClaim:
+        claimName: guestbook-gitops-example
+    # Secret volumes are read only
+    - name: kubeconfig
+      secret:
+        secretName: kubeconfig

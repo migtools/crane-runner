@@ -9,4 +9,5 @@ resources:
   - kubectl-apply-files.yaml
   - kubectl-apply-kustomize.yaml
   - kustomize-namespace.yaml
+  - git-init-push.yaml
   # - load.yaml

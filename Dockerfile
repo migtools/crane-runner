@@ -20,5 +20,6 @@ RUN curl -sL "https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux
     mv /usr/bin/yq_linux_amd64 /usr/bin/yq
 RUN curl -Ls "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v4.4.1/kustomize_v4.4.1_linux_amd64.tar.gz" | \
     tar xvzf - -C /usr/bin/ kustomize
+RUN dnf -y install git
 
 CMD ["/crane"]
