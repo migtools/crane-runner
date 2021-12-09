@@ -10,4 +10,6 @@ resources:
   - kubectl-apply-kustomize.yaml
   - kustomize-namespace.yaml
   - git-init-push.yaml
+  - kubectl-scale-down.yaml
+  # - crane-transfer-pvc.yaml
   # - load.yaml
