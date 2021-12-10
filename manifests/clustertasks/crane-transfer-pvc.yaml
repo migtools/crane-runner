@@ -17,10 +17,11 @@ spec:
         You can get this information in your current environment using
         `kubectl config get-contexts` to describe your one or many
         contexts.
-    - name: src-namespace
-      type: string
-      description: |
-        The source cluster namespace in which pvc is synced.
+    # TODO(djzager): Use this when we can provide a namespace mapping
+    # - name: src-namespace
+    #   type: string
+    #   description: |
+    #     The source cluster namespace in which pvc is synced.
     - name: dest-context
       type: string
       description: |
@@ -44,14 +45,14 @@ spec:
         The name of the networking endpoint to be used for ingress traffic in the destination cluster
   steps:
     - name: crane-transfer-pvc
-      image: quay.io/alaypatel07/crane-runner:latest
+      image: quay.io/konveyor/crane-runner:latest
       script: |
         /crane transfer-pvc \
-        --destination-context=$(params.dest-context) \
-        --source-context=$(params.src-context) \
-        --pvc-name $(params.pvc-name) \
-        --pvc-namespace $(params.dest-namespace) \
-        --endpoint $(params.endpoint-type)
+          --destination-context=$(params.dest-context) \
+          --source-context=$(params.src-context) \
+          --pvc-name $(params.pvc-name) \
+          --pvc-namespace $(params.dest-namespace) \
+          --endpoint $(params.endpoint-type)
       env:
         - name: KUBECONFIG
           value: $(workspaces.kubeconfig.path)/config

@@ -5,11 +5,10 @@ commonLabels:
 resources:
   - crane-apply.yaml
   - crane-export.yaml
+  - crane-transfer-pvc.yaml
   - crane-transform.yaml
+  - git-init-push.yaml
   - kubectl-apply-files.yaml
   - kubectl-apply-kustomize.yaml
-  - kustomize-namespace.yaml
-  - git-init-push.yaml
   - kubectl-scale-down.yaml
-  # - crane-transfer-pvc.yaml
-  # - load.yaml
+  - kustomize-namespace.yaml
