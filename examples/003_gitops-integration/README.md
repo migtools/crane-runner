@@ -153,7 +153,7 @@ workspace is referencing the `guestbook-gitops-example` PVC created earlier.
 This is important as it's where the Kustomize manifests will be stored.
 
 ```bash
-kubectl --context dest --namespace guestbook-gitops create -f "https://raw.githubusercontent.com/konveyor/crane-runner/examples/003_gitops-integration/pipelinerun.yaml"
+kubectl --context dest --namespace guestbook-gitops create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/003_gitops-integration/pipelinerun.yaml"
 ```
 
 At this stage, the Guestbook applicatoin's manifests should be safely stored in
