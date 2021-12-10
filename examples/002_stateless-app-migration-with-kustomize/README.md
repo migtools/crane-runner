@@ -19,7 +19,7 @@ then you can skip to
 * Deploy Guestbook application in "source" cluster.
 * Prepare for application migration.
 * Explore new ClusterTasks.
-* Migrate the Guestbook application using kustomize overlay in a 
+* Migrate the Guestbook application using kustomize overlay in a
     [Tekton PipelineRun](https://tekton.dev/docs/pipelines/pipelineruns/).
 
 # Before you begin
@@ -30,7 +30,7 @@ copy/paste:
 
 ```bash
 # Start up "source" and "destination" clusters in minikube
-curl -s "https://raw.githubusercontent.com/konveyor/crane/master/hack/minikube-clusters-start.sh" | bash
+curl -s "https://raw.githubusercontent.com/konveyor/crane/main/hack/minikube-clusters-start.sh" | bash
 
 # Install Tekton
 # See https://tekton.dev/docs/getting-started/ for help with installing Tekton
@@ -38,7 +38,8 @@ kubectl --context dest apply -f "https://storage.googleapis.com/tekton-releases/
 kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=180s
 
 # Install Crane Runner manifests
-kustomize build github.com/konveyor/crane-runner/manifests\?ref=master | kubectl --context dest apply -f -
+kustomize build github.com/konveyor/crane-runner/manifests | kubectl
+ --context dest apply -f -
 ```
 
 # Deploy Guestbook application in "source" cluster
@@ -55,7 +56,7 @@ The guestbook application consisists of:
 
 ```bash
 kubectl --context src create namespace guestbook
-kustomize build github.com/konveyor/crane-runner/examples/resources/guestbook\?ref=master | kubectl --context src --namespace guestbook apply -f -
+kustomize build github.com/konveyor/crane-runner/examples/resources/guestbook | kubectl --context src --namespace guestbook apply -f -
 kubectl --context src --namespace guestbook wait --for=condition=ready pod --selector=app=guestbook --timeout=180s
 ```
 

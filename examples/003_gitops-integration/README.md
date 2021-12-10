@@ -3,7 +3,7 @@ GitOps Integration
 
 This tutorial shows you how Crane Runner can be used in conjunction with
 [ArgoCD](https://argo-cd.readthedocs.io/en/stable/), a GitOps continuous
-delivery tool for Kubernetes, to migrate a simple stateless 
+delivery tool for Kubernetes, to migrate a simple stateless
 [PHP Guestbook application](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/).
 
 If you just completed [Stateless Application Migration](../002_stateless-app-migration-with-kustomize/),
@@ -26,7 +26,7 @@ required for easy copy/paste:
 
 ```bash
 # Start up "source" and "destination" clusters in minikube
-curl -s "https://raw.githubusercontent.com/konveyor/crane/master/hack/minikube-clusters-start.sh" | bash
+curl -s "https://raw.githubusercontent.com/konveyor/crane/main/hack/minikube-clusters-start.sh" | bash
 
 # Install Tekton
 # See https://tekton.dev/docs/getting-started/ for help with installing Tekton
@@ -34,7 +34,7 @@ kubectl --context dest apply -f "https://storage.googleapis.com/tekton-releases/
 kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=180s
 
 # Install Crane Runner manifests
-kustomize build github.com/konveyor/crane-runner/manifests\?ref=master | kubectl --context dest apply -f -
+kustomize build github.com/konveyor/crane-runner/manifests | kubectl --context dest apply -f -
 
 # Install Argo CD
 # See https://argo-cd.readthedocs.io/en/stable/getting_started/ for help installing Argo CD
@@ -57,7 +57,7 @@ The guestbook application consisists of:
 
 ```bash
 kubectl --context src create namespace guestbook
-kustomize build github.com/konveyor/crane-runner/examples/resources/guestbook\?ref=master | kubectl --context src --namespace guestbook apply -f -
+kustomize build github.com/konveyor/crane-runner/examples/resources/guestbook | kubectl --context src --namespace guestbook apply -f -
 kubectl --context src --namespace guestbook wait --for=condition=ready pod --selector=app=guestbook --timeout=180s
 ```
 
@@ -162,7 +162,7 @@ the `guestbook-gitops-example` volume created earlier.
 # Push Manifests to GitHub
 
 Now you want to push your Kustomize manifests to GitHub. Before you do that, you
-must create a GitHub repo to hold your Guestbook application manifests. 
+must create a GitHub repo to hold your Guestbook application manifests.
 Name it whatever you would like, ie `crane-guestbook-gitops`, and then create a
 TaskRun that uploads the manifests.
 

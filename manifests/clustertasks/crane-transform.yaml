@@ -14,7 +14,7 @@ spec:
         /crane version
         /crane transform \
           --ignored-patches-dir=$(workspaces.ignored-patches.path) \
-          --config-file=$(workspaces.craneconfig.path) \
+          --flags-file=$(workspaces.craneconfig.path) \
           --export-dir=$(workspaces.export.path) \
           --transform-dir=$(workspaces.transform.path)
 
