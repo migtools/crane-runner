@@ -1,20 +1,34 @@
-Stateful Application Migration
-==============================
+Stateful Application Stage and Migrate
+======================================
 
-In this tutorial you will migrate a simple stateful application, 
-[PHP Guestbook application](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
-modified so that the redis-leader and redis-follower use persistent storage via
-a pair of PersistentVolumeClaims.
+In this tutorial you will stage application data from
+a [PHP Guestbook application](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
+modified so that the redis-leader and redis-follower use persistent storage
+before running a pipeline that silences the application running on the "source"
+cluster, transfers any remaining data from the "source" to "destination"
+cluster, and mirrors the application workload.
+
+**NOTE**
+
+If you just completed [Stateful Application Migration](../005_stateful-app-migrate/README.md),
+you must first delete the `guestbook` namespace:
+
+```bash
+kubectl --context dest delete namespace guestbook
+```
+
+Then, proceed to [Prepare for Application Migration](#prepare-for-application-migration).
 
 # Roadmap
 
 * Deploy Guestbook application in "source" cluster.
 * Prepare for application migration.
 * Add data to the application.
-* Migrate application data with `transfer-pvc`.
-* Migrate application to "destination" cluster via
+* Stage application data with `transfer-pvc`.
+* Add more data to the application.
+* Migrate application data and workload to "destination" cluster with a
     [Tekton PipelineRun](https://tekton.dev/docs/pipelines/pipelineruns/).
-* Verify application data was migrated.
+* Verify all application data was migrated.
 
 # Before you begin
 
@@ -90,8 +104,10 @@ kubectl --context src --namespace guestbook port-forward svc/frontend 8080:80
 Then navigate to localhost:8080 from your browser and add messages to the
 guestbook.
 
+# Stage Application Data
 
-# Migrate Application Data
+Here, you will create a `PipelineRun` that uses Crane's `transfer-pvc` to bring
+the data into the "destination" cluster.
 
 ```bash
 cat <<EOF | kubectl --context dest --namespace guestbook create -f -
@@ -149,10 +165,23 @@ spec:
 EOF
 ```
 
-# Migrate Application Workloads
+# Add More Data
+
+Expose the application's frontend.
 
 ```bash
-kubectl --context dest --namespace guestbook create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/005_stateful-app-migrate/pipelinerun.yaml"
+kubectl --context src --namespace guestbook port-forward svc/frontend 8080:80
+```
+
+**NOTE** This process runs in the foreground.
+
+It's important for you to add more data to the guestbook in order to simulate an
+actual application that continues to receive, and respond to, requests.
+
+# Migrate the Application Data and Workload
+
+```bash
+kubectl --context dest --namespace guestbook create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/006_stateful-app-stage-and-migrate/pipelinerun.yaml"
 ```
 
 # Did it Work?

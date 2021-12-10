@@ -1,0 +1,168 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: stage-and-migrate-example-
+spec:
+  params:
+    - name: src-namespace
+      value: guestbook
+    - name: src-context
+      value: src
+    - name: dest-context
+      value: dest
+  pipelineSpec:
+    # All the parameters used by this pipeline
+    params:
+      - name: src-namespace
+        type: string
+      - name: src-context
+        type: string
+      - name: dest-context
+        type: string
+    workspaces:
+      # All the workspaces used in the pipeline
+      - name: shared-data
+      - name: kubeconfig
+    tasks:
+      - name: quiesce
+        taskRef:
+          name: kubectl-scale-down
+          kind: ClusterTask
+        params:
+          - name: context
+            value: "$(params.src-context)"
+          - name: namespace
+            value: "$(params.src-namespace)"
+          - name: type-name-resource
+            value: deployment.apps/frontend
+        workspaces:
+        - name: kubeconfig
+          workspace: kubeconfig
+
+      - name: redis-data01
+        runAfter:
+          - quiesce
+        taskRef:
+          name: crane-transfer-pvc
+          kind: ClusterTask
+        params:
+          - name: src-context
+            value: "$(params.src-context)"
+          - name: dest-context
+            value: "$(params.dest-context)"
+          - name: dest-namespace
+            value: "$(context.pipelineRun.namespace)"
+          - name: pvc-name
+            value: redis-data01
+          - name: endpoint-type
+            value: nginx-ingress
+        workspaces:
+        - name: kubeconfig
+          workspace: kubeconfig
+      - name: redis-data02
+        runAfter:
+          - redis-data01
+        taskRef:
+          name: crane-transfer-pvc
+          kind: ClusterTask
+        params:
+        - name: src-context
+          value: src
+        - name: dest-context
+          value: dest
+        - name: dest-namespace
+          value: guestbook
+        - name: pvc-name
+          value: redis-data02
+        - name: endpoint-type
+          value: nginx-ingress
+        workspaces:
+        - name: kubeconfig
+          workspace: kubeconfig
+
+      - name: export
+        runAfter:
+          - redis-data02
+        params:
+          - name: src-context
+            value: "$(params.src-context)"
+          - name: src-namespace
+            value: "$(params.src-namespace)"
+        taskRef:
+          name: crane-export
+          kind: ClusterTask
+        workspaces:
+          - name: export
+            workspace: shared-data
+            subPath: export
+          - name: kubeconfig
+            workspace: kubeconfig
+
+      - name: transform
+        # https://tekton.dev/docs/pipelines/pipelines/#using-the-runafter-parameter
+        # We are using this to enforce ordering on task executions
+        runAfter:
+          - export
+        taskRef:
+          name: crane-transform
+          kind: ClusterTask
+        workspaces:
+          - name: export
+            workspace: shared-data
+            subPath: export
+          - name: transform
+            workspace: shared-data
+            subPath: transform
+
+      - name: apply
+        # https://tekton.dev/docs/pipelines/pipelines/#using-the-runafter-parameter
+        # We are using this to enforce ordering on task executions
+        runAfter:
+          - transform
+        taskRef:
+          name: crane-apply
+          kind: ClusterTask
+        workspaces:
+          - name: export
+            workspace: shared-data
+            subPath: export
+          - name: transform
+            workspace: shared-data
+            subPath: transform
+          - name: apply
+            workspace: shared-data
+            subPath: apply
+
+      - name: kubectl-apply
+        # https://tekton.dev/docs/pipelines/pipelines/#using-the-runafter-parameter
+        # We are using this to enforce ordering on task executions
+        runAfter:
+          - apply
+        params:
+          - name: dest-context
+            value: "$(params.dest-context)"
+        taskRef:
+          name: kubectl-apply-files
+          kind: ClusterTask
+        workspaces:
+          - name: apply
+            workspace: shared-data
+            subPath: apply
+          - name: kubeconfig
+            workspace: kubeconfig
+
+  workspaces:
+    # This is where we map physical volumes (pvc, secret, configmap) to
+    # workspaces that can be used by the specific tasks in the pipeline.
+    - name: shared-data
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Mi
+    # Secret volumes are read only
+    - name: kubeconfig
+      secret:
+        secretName: kubeconfig
