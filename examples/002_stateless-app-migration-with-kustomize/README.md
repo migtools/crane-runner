@@ -38,7 +38,8 @@ kubectl --context dest apply -f "https://storage.googleapis.com/tekton-releases/
 kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=180s
 
 # Install Crane Runner manifests
-kustomize build github.com/konveyor/crane-runner/manifests\?ref=main | kubectl --context dest apply -f -
+kustomize build github.com/konveyor/crane-runner/manifests | kubectl
+ --context dest apply -f -
 ```
 
 # Deploy Guestbook application in "source" cluster
@@ -55,7 +56,7 @@ The guestbook application consisists of:
 
 ```bash
 kubectl --context src create namespace guestbook
-kustomize build github.com/konveyor/crane-runner/examples/resources/guestbook\?ref=main | kubectl --context src --namespace guestbook apply -f -
+kustomize build github.com/konveyor/crane-runner/examples/resources/guestbook | kubectl --context src --namespace guestbook apply -f -
 kubectl --context src --namespace guestbook wait --for=condition=ready pod --selector=app=guestbook --timeout=180s
 ```
 
