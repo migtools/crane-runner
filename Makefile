@@ -5,7 +5,7 @@ IMAGE_TAG        ?= $(shell git rev-parse --short HEAD)
 RUNNER_IMAGE     ?= $(IMAGE_ORG)/$(IMAGE_NAME):$(IMAGE_TAG)
 
 build-image: ## Build the crane-runner container image
-	$(RUNTIME) build -t $(RUNNER_IMAGE) -f Dockerfile .
+	$(RUNTIME) build ${CONTAINER_BUILD_PARAMS} -t $(RUNNER_IMAGE) -f Dockerfile .
 
 push-image: ## Push the crane-runner container image
 	$(RUNTIME) push $(RUNNER_IMAGE)
