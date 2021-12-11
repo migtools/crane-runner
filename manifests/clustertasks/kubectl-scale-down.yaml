@@ -5,42 +5,26 @@ metadata:
   annotations:
     migration.openshift.io/placeholder: "true"
     description: |
-      Scale the workloads by changing the number of replicas
+      Scale resource down using kubectl scale.
 spec:
   params:
-    - name: src-context
+    - name: context
       type: string
       description: |
-        The name of the context from kubeconfig representing the source
-        cluster.
-
-        You can get this information in your current environment using
-        `kubectl config get-contexts` to describe your one or many
-        contexts.
-    - name: src-namespace
+        Context to use when scaling down resources
+    - name: namespace
       type: string
       description: |
-        The source cluster namespace from which to export resources.
-    - name: kind
+        Namespace to use when scaling down resources
+    - name: type-name-resource
       type: string
       description: |
-        The kind of resource to be scaled down, it should not be a comma separated list
-    - name: selector
-      type: string
-      description: |
-        The label selector used to scale down resources in source namespace/context
+        The resource to be scaled down in type/name format (ie. deployment/mysql or rc/foo)
   steps:
     - name: kubectl-scale-down
       image: quay.io/konveyor/crane-runner:latest
       script: |
-        RESOURCES=$(kubectl --context $(params.src-context) --namespace $(params.src-namespace) get \
-                      deployments,replicasets,statefulsets --no-headers --selector     \
-                      $(params.selector)| awk '{print $1}')
-
-        for RESOURCE in $RESOURCES; do
-          echo "scaling down ${RESOURCE}"
-          kubectl scale --context $(params.src-context) --namespace $(params.src-namespace) --replicas=0 ${RESOURCE}
-        done
+        kubectl scale --context $(params.context) --namespace $(params.namespace) --replicas=0 $(params.type-name-resource)
       env:
         - name: KUBECONFIG
           value: $(workspaces.kubeconfig.path)/config

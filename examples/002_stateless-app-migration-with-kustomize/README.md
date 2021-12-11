@@ -38,8 +38,7 @@ kubectl --context dest apply -f "https://storage.googleapis.com/tekton-releases/
 kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=180s
 
 # Install Crane Runner manifests
-kustomize build github.com/konveyor/crane-runner/manifests | kubectl
- --context dest apply -f -
+kustomize build github.com/konveyor/crane-runner/manifests | kubectl --context dest apply -f -
 ```
 
 # Deploy Guestbook application in "source" cluster
@@ -83,5 +82,5 @@ use in the pipeline to migrate the application.
 # Create Tekton PipelineRun
 
 ```bash
-kubectl --context dest --namespace hello-kustomize create -f "https://raw.githubusercontent.com/konveyor/crane-runner/examples/resources/stateless-app-migration-with-kustomize.pipelinerun.yaml"
+kubectl --context dest --namespace hello-kustomize create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/002_stateless-app-migration-with-kustomize/pipelinerun.yaml"
 ```
