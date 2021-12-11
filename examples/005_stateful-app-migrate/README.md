@@ -53,7 +53,8 @@ kustomize build github.com/konveyor/crane-runner/examples/resources/guestbook-pe
 kubectl --context src --namespace guestbook wait --for=condition=ready pod --selector=app=guestbook --timeout=180s
 ```
 
-**NOTE** If you previously deployed the guestbook application, it may be missing
+**NOTE**
+If you previously deployed the guestbook application, it may be missing
 PVCs. At a minimum, you should run:
 
 ```bash
@@ -73,6 +74,7 @@ kubectl --context dest create namespace guestbook
 
 You must upload your kubeconfig as a secret. This will be used by the
 ClusterTasks to migrate the application.
+
 ```bash
 kubectl config view --flatten | kubectl --context dest --namespace guestbook create secret generic kubeconfig --from-file=config=/dev/stdin
 ```
@@ -92,6 +94,8 @@ guestbook.
 
 
 # Migrate Application Data
+
+Submit a PipelineRun that will migrate the Guestbook application data.
 
 ```bash
 cat <<EOF | kubectl --context dest --namespace guestbook create -f -
@@ -149,7 +153,22 @@ spec:
 EOF
 ```
 
+**NOTE**
+The `runAfter` is used to enforce ordering here because of
+[this issue in `crane`](https://github.com/konveyor/crane/issues/66).
+
+At this point, you should have `redis-data01` and `redis-data02` available in
+your "destination" cluster:
+
+```bash
+kubectl --context dest --namespace guestbook get pvc
+```
+
 # Migrate Application Workloads
+
+Now you'll submit a PipelineRun that will look familiar if you've completed
+previous examples. It simply mirrors the workloads from "source" to
+"destination" cluster.
 
 ```bash
 kubectl --context dest --namespace guestbook create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/005_stateful-app-migrate/pipelinerun.yaml"
