@@ -70,17 +70,53 @@ kubectl --context dest create namespace hello-kustomize
 
 You must upload your kubeconfig as a secret. This will be used by the
 ClusterTasks to migrate the application.
+
 ```bash
 kubectl config view --flatten | kubectl --context dest --namespace hello-kustomize create secret generic kubeconfig --from-file=config=/dev/stdin
 ```
 
 # Explore new ClusterTasks
 
-Some words about the kustomize and kubectl-apply-kustomize ClusterTasks we will
-use in the pipeline to migrate the application.
+* The [kustomize-namespace ClusterTask](/manifests/clustertasks/kustomize-namespace.yaml)
+    takes a directory storing the result of crane's `apply` step and creates a
+    kustomize overlay.
+* The [kubectl-apply-kustomize](/manifests/clustertasks/kubectl-apply-kustomize.yaml)
+    runs `kubectl apply -k` against a Kustomize directory.
 
 # Create Tekton PipelineRun
+
+Submit the [PipelineRun](/examples/002_stateless-app-migration-with-kustomize/pipelinerun.yaml):
 
 ```bash
 kubectl --context dest --namespace hello-kustomize create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/002_stateless-app-migration-with-kustomize/pipelinerun.yaml"
 ```
+
+A few things for you to note when looking at the PipelineRun:
+
+* Data is shared between the tasks using a
+    [`volumeClaimTemplate`](https://tekton.dev/docs/pipelines/workspaces/#volumeclaimtemplate).
+    Used in this way, it lives as long as the PipelineRun.
+* All but the first task use `runAfter` to make the Tasks run sequentially.
+
+# Verify the Migrated Application is Healthy
+
+You can check that everything survived the move:
+
+```bash
+kubectl --context dest --namespace hello-kustomize get all
+```
+
+Then, verify the Guestbook application's frontend is running properly:
+
+```bash
+kubectl --context src --namespace hello-kustomize port-forward svc/frontend 8080:80
+```
+
+Then navigate to localhost:8080 from your browser.
+
+# What's Next
+
+* You could turn this collection of `TaskRun`s to a single `PipelineRun`.
+* Check out [GitOps Integration](../003_gitops-integration/README.md)
+* Read more about [Tekton](https://tekton.dev/docs/getting-started/)
+* Read more about [Crane](https://github.com/konveyor/crane)
