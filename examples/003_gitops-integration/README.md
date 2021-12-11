@@ -144,9 +144,9 @@ EOF
 
 # Convert Guestbook Application from "source" cluster to Kustomize Manifests
 
-Create Tekton PipelineRun that runs the `crane-export`, `crane-transform`, and
-`crane-apply` ClusterTasks before `kustomize-namespace` to make the manifests
-consumable via Kustomize.
+Create Tekton PipelineRun that goes through the crane workflow `export`,
+`transform`, and `apply` before creating a Kustomize base from the resulting
+resources.
 
 Notice in the [PipelineRun](./pipelinerun.yaml), that the `shared-data`
 workspace is referencing the `guestbook-gitops-example` PVC created earlier.
@@ -156,7 +156,7 @@ This is important as it's where the Kustomize manifests will be stored.
 kubectl --context dest --namespace guestbook-gitops create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/003_gitops-integration/pipelinerun.yaml"
 ```
 
-At this stage, the Guestbook applicatoin's manifests should be safely stored in
+At this stage, the Guestbook application's manifests should be safely stored in
 the `guestbook-gitops-example` volume created earlier.
 
 # Push Manifests to GitHub
@@ -167,6 +167,10 @@ Name it whatever you would like, ie `crane-guestbook-gitops`, and then create a
 TaskRun that uploads the manifests.
 
 ```bash
+GIT_REMOTE_URL="https://github.com/${__YOUR_GITHUB_ID__}/crane-guestbook-gitops.git"
+GIT_USER_NAME="${__YOUR_GIT_USERNAME__}"
+GIT_USER_EMAIL="${__YOUR_GIT_EMAIL__}"
+
 cat <<EOF | kubectl --context dest --namespace guestbook-gitops create -f -
 apiVersion: tekton.dev/v1beta1
 kind: TaskRun
@@ -181,9 +185,9 @@ spec:
   - name: git-remote-url
     value: ${GIT_REMOTE_URL}
   - name: user-name
-    value: "you@example.com"
-  - name: user-email
     value: "Your Name"
+  - name: user-email
+    value: "you@example.com"
   workspaces:
   - name: uninitialized-git-repo
     persistentVolumeClaim:
@@ -193,6 +197,9 @@ EOF
 ```
 
 # Import Guestbook Application into Argo CD
+
+All you need to do now is tell Argo CD about your application, where the source
+can be found, and where to install it.
 
 ```bash
 cat <<EOF | kubectl --context dest --namespace argocd apply -f -
@@ -215,3 +222,11 @@ spec:
       selfHeal: true
 EOF
 ```
+
+**NOTE** The application is created in the `argocd` namespace.
+
+# What's Next
+
+* Read more about [Tekton](https://tekton.dev/docs/getting-started/)
+* Read more about [Crane](https://github.com/konveyor/crane)
+* Read more about [Argo CD](https://argo-cd.readthedocs.io/en/stable/)
