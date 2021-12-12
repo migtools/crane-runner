@@ -180,9 +180,9 @@ spec:
   params:
   - name: git-remote-url
     value: ${GIT_REMOTE_URL}
-  - name: user-name
-    value: "you@example.com"
   - name: user-email
+    value: "you@example.com"
+  - name: user-name
     value: "Your Name"
   workspaces:
   - name: uninitialized-git-repo
