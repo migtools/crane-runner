@@ -180,6 +180,12 @@ previous examples. It simply mirrors the workloads from "source" to
 kubectl --context dest --namespace guestbook create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/stateful-app-migration/pipelinerun.yaml"
 ```
 
+Keep an eye on pipeline progress via:
+
+```bash
+watch kubectl --context dest --namespace guestbook get pipelineruns,taskruns,pods
+```
+
 # Verify Application Migration
 
 Expose the application's frontend.

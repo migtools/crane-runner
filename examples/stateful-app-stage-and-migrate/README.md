@@ -184,10 +184,16 @@ actual application that continues to receive, and respond to, requests.
 kubectl --context dest --namespace guestbook create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/stateful-app-stage-and-migrate/pipelinerun.yaml"
 ```
 
+Keep an eye on pipeline progress via:
+
+```bash
+watch kubectl --context dest --namespace guestbook get pipelineruns,taskruns,pods
+```
+
 **NOTE**
 
 You will notice, if you look at the [PipelineRun](./pipelinerun.yaml), that the
-first task is `export`. The reason for this is to prevent us from migrating a
+first task is `export`. The reason for this is to prevent you from migrating a
 scaled down application.
 
 # Verify Application Migration
