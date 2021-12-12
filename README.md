@@ -1,4 +1,4 @@
-crane-runner
+Crane Runner
 ============
 
 This project is meant to help you migrate Kubernetes workloads from the comfort
@@ -12,7 +12,7 @@ the case of "export" -- and we handle the rest.
 
 ## Quick Start
 
-No patience for documentation? All you need is cluster and Tekton to get
+No patience for documentation? All you need is a cluster and Tekton to get
 started.
 
 
@@ -31,6 +31,5 @@ kustomize build github.com/konveyor/crane-runner/manifests | kubectl apply -f -
 
 ## Getting Started
 
-With Tekton installed and the crane-runner manifests applied, check out
-[our Examples](./examples) to start working through your first
-migration with crane-runner.
+Check out [our Examples](./examples) to start working through your first
+migration with Crane.
