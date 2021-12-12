@@ -10,7 +10,7 @@ namespace in the "source" cluster to the same namespace in the "destination"
 cluster, here you will use a Kustomize overlay to import the workload into
 the desired namespace.
 
-If you just completed [Stateless Application Mirror](../001_stateless-app-mirror/),
+If you just completed [Stateless Application Mirror](../stateless-app-mirror/),
 then you can skip to
 [Prepare for Application Migration](#prepare-for-application-migration).
 
@@ -22,7 +22,7 @@ then you can skip to
 * Migrate the Guestbook application using kustomize overlay in a
     [Tekton PipelineRun](https://tekton.dev/docs/pipelines/pipelineruns/).
 
-# Before you begin
+# Before You Begin
 
 You will need a "source" and "destination" Kubernetes cluster with Tekton and
 the Crane Runner ClusterTasks installed. Below are the steps required for easy
@@ -41,7 +41,7 @@ kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready p
 kustomize build github.com/konveyor/crane-runner/manifests | kubectl --context dest apply -f -
 ```
 
-# Deploy Guestbook application in "source" cluster
+# Deploy Guestbook Application in "source" Cluster
 
 You will be deploying
 [Kubernetes' stateless guestbook application](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
@@ -85,10 +85,42 @@ kubectl config view --flatten | kubectl --context dest --namespace hello-kustomi
 
 # Create Tekton PipelineRun
 
-Submit the [PipelineRun](/examples/002_stateless-app-migration-with-kustomize/pipelinerun.yaml):
+Submit the [PipelineRun](/examples/stateless-app-migration-with-kustomize/pipelinerun.yaml):
 
 ```bash
-kubectl --context dest --namespace hello-kustomize create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/002_stateless-app-migration-with-kustomize/pipelinerun.yaml"
+kubectl --context dest --namespace hello-kustomize create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/stateless-app-migration-with-kustomize/pipelinerun.yaml"
+```
+
+You can watch what's happening with:
+
+```bash
+Every 2.0s: kubectl --context dest --namespace hello-kustomize get pipelineruns,taskruns,pvc,pods
+
+NAME                                           SUCCEEDED   REASON      STARTTIME   COMPLETIONTIME
+pipelinerun.tekton.dev/hello-kustomize-2fl82   True        Succeeded   107s        54s
+
+NAME                                                               SUCCEEDED   REASON      STARTTIME   COMPLETIONTIME
+taskrun.tekton.dev/hello-kustomize-2fl82-apply                     True        Succeeded   77s         71s
+taskrun.tekton.dev/hello-kustomize-2fl82-export                    True        Succeeded   107s        84s
+taskrun.tekton.dev/hello-kustomize-2fl82-kubectl-apply-kustomize   True        Succeeded   64s         54s
+taskrun.tekton.dev/hello-kustomize-2fl82-kustomize                 True        Succeeded   71s         65s
+taskrun.tekton.dev/hello-kustomize-2fl82-transform                 True        Succeeded   84s         77s
+
+NAME                                   STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+persistentvolumeclaim/pvc-f8438cd335   Bound    pvc-ab83ac0d-52f1-4f0f-b244-77bf34bcdedb   10Mi       RWO            standard       107s
+
+NAME                                                    READY   STATUS      RESTARTS   AGE
+pod/frontend-5fd859dcf6-hhfgs                           1/1     Running     0          57s
+pod/frontend-5fd859dcf6-p7qsk                           1/1     Running     0          57s
+pod/frontend-5fd859dcf6-szkw6                           1/1     Running     0          57s
+pod/hello-kustomize-2fl82-apply-pod                     0/1     Completed   0          77s
+pod/hello-kustomize-2fl82-export-pod                    0/1     Completed   0          107s
+pod/hello-kustomize-2fl82-kubectl-apply-kustomize-pod   0/1     Completed   0          64s
+pod/hello-kustomize-2fl82-kustomize-pod                 0/1     Completed   0          71s
+pod/hello-kustomize-2fl82-transform-pod                 0/1     Completed   0          84s
+pod/redis-master-55d9747c6c-84p8s                       1/1     Running     0          57s
+pod/redis-slave-5c6b4c5b47-cslpt                        1/1     Running     0          57s
+pod/redis-slave-5c6b4c5b47-mjslc                        1/1     Running     0          57s
 ```
 
 A few things for you to note when looking at the PipelineRun:
@@ -116,7 +148,13 @@ Then navigate to localhost:8080 from your browser.
 
 # What's Next
 
-* Check out [GitOps Integration](../003_gitops-integration/README.md)
+* Check out [GitOps Integration](../gitops-integration/README.md)
 * Read more about [Tekton](https://tekton.dev/docs/getting-started/)
 * Read more about [Crane](https://github.com/konveyor/crane)
 * Read more about [Kustomize](https://kustomize.io)
+
+# Cleanup
+
+```bash
+kubectl --context dest delete namespace hello-kustomize
+```

@@ -10,8 +10,8 @@ cluster, and mirrors the application workload.
 
 **NOTE**
 
-If you just completed [Stateful Application Migration](../005_stateful-app-migrate/README.md),
-you must first delete the `guestbook` namespace:
+If you just completed [Stateful Application Migration](../stateful-app-migration/README.md),
+you **must** first delete the `guestbook` namespace:
 
 ```bash
 kubectl --context dest delete namespace guestbook
@@ -30,7 +30,7 @@ Then, proceed to [Prepare for Application Migration](#prepare-for-application-mi
     [Tekton PipelineRun](https://tekton.dev/docs/pipelines/pipelineruns/).
 * Verify all application data was migrated.
 
-# Before you begin
+# Before You Begin
 
 You will need a "source" and "destination" Kubernetes cluster with Tekton and
 the Crane Runner ClusterTasks installed. Below are the steps required for easy
@@ -49,7 +49,7 @@ kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready p
 kustomize build github.com/konveyor/crane-runner/manifests | kubectl --context dest apply -f -
 ```
 
-# Deploy Guestbook application in "source" cluster
+# Deploy Guestbook Application in "source" Cluster
 
 You will be deploying
 [Kubernetes' stateless guestbook application](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
@@ -114,7 +114,7 @@ cat <<EOF | kubectl --context dest --namespace guestbook create -f -
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  generateName: stateful-app-migrate-
+  generateName: stage-example
 spec:
   pipelineSpec:
     workspaces:
@@ -181,10 +181,16 @@ actual application that continues to receive, and respond to, requests.
 # Migrate the Application Data and Workload
 
 ```bash
-kubectl --context dest --namespace guestbook create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/006_stateful-app-stage-and-migrate/pipelinerun.yaml"
+kubectl --context dest --namespace guestbook create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/stateful-app-stage-and-migrate/pipelinerun.yaml"
 ```
 
-# Did it Work?
+**NOTE**
+
+You will notice, if you look at the [PipelineRun](./pipelinerun.yaml), that the
+first task is `export`. The reason for this is to prevent us from migrating a
+scaled down application.
+
+# Verify Application Migration
 
 Expose the application's frontend.
 
@@ -196,3 +202,14 @@ kubectl --context dest --namespace guestbook port-forward svc/frontend 8080:80
 
 Now you can navigate to localhost:8080 in your browser and verify that the
 messages were maintained during migration.
+
+# What's Next
+
+* Read more about [Tekton](https://tekton.dev/docs/getting-started/)
+* Read more about [Crane](https://github.com/konveyor/crane)
+
+# Cleanup
+
+```bash
+kubectl --context dest delete namespace guestbook
+```

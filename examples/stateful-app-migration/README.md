@@ -16,7 +16,7 @@ a pair of PersistentVolumeClaims.
     [Tekton PipelineRun](https://tekton.dev/docs/pipelines/pipelineruns/).
 * Verify application data was migrated.
 
-# Before you begin
+# Before You Begin
 
 You will need a "source" and "destination" Kubernetes cluster with Tekton and
 the Crane Runner ClusterTasks installed. Below are the steps required for easy
@@ -35,7 +35,7 @@ kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready p
 kustomize build github.com/konveyor/crane-runner/manifests | kubectl --context dest apply -f -
 ```
 
-# Deploy Guestbook application in "source" cluster
+# Deploy Guestbook Application in "source" Cluster
 
 You will be deploying
 [Kubernetes' stateless guestbook application](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
@@ -54,6 +54,7 @@ kubectl --context src --namespace guestbook wait --for=condition=ready pod --sel
 ```
 
 **NOTE**
+
 If you previously deployed the guestbook application, it may be missing
 PVCs. At a minimum, you should run:
 
@@ -81,6 +82,11 @@ kubectl config view --flatten | kubectl --context dest --namespace guestbook cre
 
 # Add Data
 
+**NOTE**
+
+Before proceeding, check [Before You Begin](#before-you-begin) and double check
+that your application is using storage.
+
 Expose the application's frontend.
 
 ```bash
@@ -102,7 +108,7 @@ cat <<EOF | kubectl --context dest --namespace guestbook create -f -
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  generateName: stateful-app-migrate-
+  generateName: stateful-app-migration-
 spec:
   pipelineSpec:
     workspaces:
@@ -171,10 +177,10 @@ previous examples. It simply mirrors the workloads from "source" to
 "destination" cluster.
 
 ```bash
-kubectl --context dest --namespace guestbook create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/005_stateful-app-migrate/pipelinerun.yaml"
+kubectl --context dest --namespace guestbook create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/stateful-app-migration/pipelinerun.yaml"
 ```
 
-# Did it Work?
+# Verify Application Migration
 
 Expose the application's frontend.
 
@@ -186,3 +192,15 @@ kubectl --context dest --namespace guestbook port-forward svc/frontend 8080:80
 
 Now you can navigate to localhost:8080 in your browser and verify that the
 messages were maintained during migration.
+
+# What's Next
+
+* Check out [Stateful Application Stage and Migrate](/examples/stateful-app-stage-and-migrate/README.md)
+* Read more about [Tekton](https://tekton.dev/docs/getting-started/)
+* Read more about [Crane](https://github.com/konveyor/crane)
+
+# Cleanup
+
+```bash
+kubectl --context dest delete namespace guestbook
+```

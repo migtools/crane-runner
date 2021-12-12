@@ -6,19 +6,19 @@ This tutorial shows you how Crane Runner can be used in conjunction with
 delivery tool for Kubernetes, to migrate a simple stateless
 [PHP Guestbook application](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/).
 
-If you just completed [Stateless Application Migration](../002_stateless-app-migration-with-kustomize/),
-then you can skip to
-[Prepare for Application Migration](#prepare-for-application-migration).
+If you just completed [Stateless Application Migration](../stateless-app-migration-with-kustomize/),
+then, **be sure to** start with [Before You Begin](#before-you-begin) as you
+will need to install Argo CD for this example.
 
 # Roadmap
 
 * Deploy Guestbook application in "source" cluster.
 * Prepare for application migration.
-* Convert Guestbook application from "source" cluster to Kustomize manifests
+* Export Guestbook application from "source" cluster.
 * Push manifests to GitHub using ClusterTaskCreate a GitHub repository to hold our Guestbook application manifests.
 * Import application using Argo CD.
 
-# Before you begin
+# Before You Begin
 
 You will need a "source" and "destination" Kubernetes cluster with Tekton,
 the Crane Runner ClusterTasks, and Argo CD installed. Below are the steps
@@ -43,7 +43,7 @@ kubectl --context dest apply --namespace argocd -f https://raw.githubusercontent
 kubectl --context dest --namespace argocd wait --for=condition=ready pod --selector=app.kubernetes.io/name=argocd-server --timeout=180s
 ```
 
-# Deploy Guestbook application in "source" cluster
+# Deploy Guestbook Application in "source" Cluster
 
 You will be deploying
 [Kubernetes' stateless guestbook application](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
@@ -108,6 +108,7 @@ type: kubernetes.io/basic-auth
 stringData:
   username: ${USER}
   password: ${PASS}
+EOF
 ```
 
 Create a serviceAccount and attach your secret to it:
@@ -142,7 +143,7 @@ spec:
 EOF
 ```
 
-# Convert Guestbook Application from "source" cluster to Kustomize Manifests
+# Export Guestbook Application from "source" Cluster
 
 Create Tekton PipelineRun that goes through the crane workflow `export`,
 `transform`, and `apply` before creating a Kustomize base from the resulting
@@ -153,7 +154,13 @@ workspace is referencing the `guestbook-gitops-example` PVC created earlier.
 This is important as it's where the Kustomize manifests will be stored.
 
 ```bash
-kubectl --context dest --namespace guestbook-gitops create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/003_gitops-integration/pipelinerun.yaml"
+kubectl --context dest --namespace guestbook-gitops create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/gitops-integration/pipelinerun.yaml"
+```
+
+Keep an eye on pipeline progress via:
+
+```bash
+watch kubectl --context dest --namespace guestbook-gitops get pipelineruns,taskruns,pods
 ```
 
 At this stage, the Guestbook application's manifests should be safely stored in
@@ -175,7 +182,7 @@ cat <<EOF | kubectl --context dest --namespace guestbook-gitops create -f -
 apiVersion: tekton.dev/v1beta1
 kind: TaskRun
 metadata:
-  generateName: guestbook-gitops-example-
+  generateName: guestbook-gitops-example-git-push-
 spec:
   serviceAccountName: guestbook-gitops-example
   taskRef:
@@ -185,9 +192,9 @@ spec:
   - name: git-remote-url
     value: ${GIT_REMOTE_URL}
   - name: user-name
-    value: "Your Name"
+    value: ${GIT_USER_NAME}
   - name: user-email
-    value: "you@example.com"
+    value: ${GIT_USER_EMAIL}
   workspaces:
   - name: uninitialized-git-repo
     persistentVolumeClaim:
@@ -209,7 +216,7 @@ metadata:
   name: guestbook-gitops
 spec:
   source:
-    path: app
+    path: .
     repoURL: ${GIT_REMOTE_URL}
     targetRevision: master
   destination:
@@ -225,8 +232,22 @@ EOF
 
 **NOTE** The application is created in the `argocd` namespace.
 
+Check on the Application status with:
+
+```bash
+kubectl --context dest --namespace argocd get applications guestbook-gitops -o yaml
+```
+
 # What's Next
 
+* Check out [Stateful Application Migration](/examples/stateful-app-migration/README.md)
 * Read more about [Tekton](https://tekton.dev/docs/getting-started/)
 * Read more about [Crane](https://github.com/konveyor/crane)
 * Read more about [Argo CD](https://argo-cd.readthedocs.io/en/stable/)
+
+# Cleanup
+
+```bash
+kubectl --context dest --namespace argocd delete application guestbook-gitops
+kubectl --context dest delete namespace guestbook-gitops
+```

@@ -17,7 +17,7 @@ executing [Tekton TaskRuns](https://github.com/tektoncd/pipeline/blob/main/docs/
 * Run `crane-apply` ClusterTask.
 * Run `kubectl-apply-files` ClusterTask.
 
-# Before you begin
+# Before You Begin
 
 You will need a "source" and "destination" Kubernetes cluster with Tekton and
 the Crane Runner ClusterTasks installed. Below are the steps required for easy
@@ -36,7 +36,7 @@ kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready p
 kustomize build github.com/konveyor/crane-runner/manifests | kubectl --context dest apply -f -
 ```
 
-# Deploy Guestbook application in "source" cluster
+# Deploy Guestbook Application in "source" Cluster
 
 You will be deploying
 [Kubernetes' stateless guestbook application](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
@@ -260,6 +260,12 @@ EOF
 # What's Next
 
 * You could turn this collection of `TaskRun`s to a single `PipelineRun`.
-* Check out [Stateless App Migration with Kustomize](../002_stateless-app-migration-with-kustomize/README.md)
+* Check out [Stateless App Migration with Kustomize](../stateless-app-migration-with-kustomize/README.md)
 * Read more about [Tekton](https://tekton.dev/docs/getting-started/)
 * Read more about [Crane](https://github.com/konveyor/crane)
+
+# Cleanup
+
+```bash
+kubectl --context dest delete namespace guestbook
+```
