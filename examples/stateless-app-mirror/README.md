@@ -6,8 +6,7 @@ This tutorial shows you how to mirror a simple stateless
 using Crane Runner and
 [Tekton ClusterTasks](https://tekton.dev/docs/pipelines/tasks/#task-vs-clustertask).
 Crane's export, transform, and apply functionality will be demonstrated through
-executing Crane Runner ClusterTasks via
-[Tekton TaskRuns](https://github.com/tektoncd/pipeline/blob/main/docs/taskruns.md).
+executing [Tekton TaskRuns](https://github.com/tektoncd/pipeline/blob/main/docs/taskruns.md).
 
 # Roadmap
 
@@ -16,9 +15,9 @@ executing Crane Runner ClusterTasks via
 * Run `crane-export` ClusterTask.
 * Run `crane-transform` ClusterTask.
 * Run `crane-apply` ClusterTask.
-* Run `kubectl-apply` ClusterTask.
+* Run `kubectl-apply-files` ClusterTask.
 
-# Before you begin
+# Before You Begin
 
 You will need a "source" and "destination" Kubernetes cluster with Tekton and
 the Crane Runner ClusterTasks installed. Below are the steps required for easy
@@ -37,7 +36,7 @@ kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready p
 kustomize build github.com/konveyor/crane-runner/manifests | kubectl --context dest apply -f -
 ```
 
-# Deploy Guestbook application in "source" cluster
+# Deploy Guestbook Application in "source" Cluster
 
 You will be deploying
 [Kubernetes' stateless guestbook application](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
@@ -57,22 +56,24 @@ kubectl --context src --namespace guestbook wait --for=condition=ready pod --sel
 
 # Prepare for Application Mirror
 
-You should first ensure that you have a `guestbook` namespace in the
-"destination" cluster where we will mirror all resources from the "source"
-cluster.
+First, you will create the `guestbook` namespace in the
+"destination" cluster where workloads from the "source" cluster will be
+mirrored.
 
 ```bash
 kubectl --context dest create namespace guestbook
 ```
 
-Also, you must upload your kubeconfig as a secret. This will be used by the
-ClusterTasks to mirror the application.
+You will need to upload your kubeconfig -- with "source" and "destination"
+cluster contexts included -- as a secret. This is how the mechanism through
+which tasks will communicate with the "source" and "destination" clusters.
+
 
 ```bash
 kubectl config view --flatten | kubectl --context dest --namespace guestbook create secret generic kubeconfig --from-file=config=/dev/stdin
 ```
 
-Now that you have a namespace and kubeconfig, you need to reserve a
+Now that you have a namespace and kubeconfig, you will reserve a
 PersistentVolume to be used for data sharing.
 
 ```bash
@@ -90,7 +91,7 @@ spec:
 EOF
 ```
 
-Lastly, verify the PersistentVolumeClaim is bound before proceeding.
+Verify the PersistentVolumeClaim is bound before proceeding.
 
 ```bash
 $ kubectl --context dest --namespace guestbook get persistentvolumeclaims stateless-app-mirror
@@ -99,6 +100,9 @@ stateless-app-mirror   Bound    pvc-8a692117-02a3-46e9-8a3a-43dade8f98d2   10Mi 
 ```
 
 # Run `crane-export` ClusterTask
+
+Crane's `export` command is how you extract all of the resources you want from
+the "source" cluster.
 
 ```bash
 cat <<EOF | kubectl --context dest --namespace guestbook create -f -
@@ -128,6 +132,10 @@ EOF
 
 # Run `crane-transform` ClusterTask
 
+Crane's `transform` command helps you strip cluster specific information out of
+the exported manifests by enumerating the modifications needed (ie. stripping
+status information off of workloads) as JSON patches.
+
 ```bash
 cat <<EOF | kubectl --context dest --namespace guestbook create -f -
 apiVersion: tekton.dev/v1beta1
@@ -150,7 +158,49 @@ spec:
 EOF
 ```
 
+**NOTE**
+
+If you look at the
+[crane-transform ClusterTask](/manifests/clustertasks/crane-transform.yaml),
+you will notice it can leverage a `craneconfig` workspace. If provided, you
+could use it to configure crane's `transform` behavior.
+
+An example configmap would look something like:
+
+```
+cat <<EOF | kubectl apply --namespace ${NAMESPACE} -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: craneconfig
+data:
+  config: |
+    debug: false
+    optional-flags:
+      strip-default-pull-secrets: "true"
+      registry-replacement: "docker-registry.default.svc:5000": "image-registry.openshift-image-registry.svc:5000"
+      extra-whiteouts:
+      - ImageStream.image.openshift.io
+      - ImageStreamTag.image.openshift.io
+      - StatefulSet.apps
+      remove-annotations:
+      - some-node-annotation
+      - foobar
+EOF
+```
+
+
 # Run `crane-apply` ClusterTask
+
+Crane's `apply` command takes the exported resources + transformations saved as
+JSON patches and renders the results as YAML files that you _should_ be able to
+apply to another cluster as is. Should is an operative word here, if it doesn't
+work, then the benefit of the non-destructive nature of crane is shown; you may
+only need to change flags in the `transform` step re-`apply` and be finished.
+
+Notice this task doesn't take any parameters, it simply takes the two input
+directories (export and transform) and results are stored in apply directory.
+
 
 ```bash
 cat <<EOF | kubectl --context dest --namespace guestbook create -f -
@@ -180,6 +230,9 @@ EOF
 
 # Run `kubectl-apply` ClusterTask
 
+This task is simple on purpose, it takes the results from the `apply` step (ie.
+a directory of resources) and runs `kubectl apply` on them.
+
 ```bash
 cat <<EOF | kubectl --context dest --namespace guestbook create -f -
 apiVersion: tekton.dev/v1beta1
@@ -204,7 +257,15 @@ spec:
 EOF
 ```
 
-# Conclusions
+# What's Next
 
-Some words about what was done in this exercise and point to 002 and using
-pipelineruns.
+* You could turn this collection of `TaskRun`s to a single `PipelineRun`.
+* Check out [Stateless App Migration with Kustomize](../stateless-app-migration-with-kustomize/README.md)
+* Read more about [Tekton](https://tekton.dev/docs/getting-started/)
+* Read more about [Crane](https://github.com/konveyor/crane)
+
+# Cleanup
+
+```bash
+kubectl --context dest delete namespace guestbook
+```

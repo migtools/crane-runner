@@ -24,7 +24,26 @@ spec:
       - name: shared-data
       - name: kubeconfig
     tasks:
+
+      - name: export
+        params:
+          - name: src-context
+            value: "$(params.src-context)"
+          - name: src-namespace
+            value: "$(params.src-namespace)"
+        taskRef:
+          name: crane-export
+          kind: ClusterTask
+        workspaces:
+          - name: export
+            workspace: shared-data
+            subPath: export
+          - name: kubeconfig
+            workspace: kubeconfig
+
       - name: quiesce
+        runAfter:
+          - export
         taskRef:
           name: kubectl-scale-down
           kind: ClusterTask
@@ -59,6 +78,7 @@ spec:
         workspaces:
         - name: kubeconfig
           workspace: kubeconfig
+
       - name: redis-data02
         runAfter:
           - redis-data01
@@ -80,29 +100,11 @@ spec:
         - name: kubeconfig
           workspace: kubeconfig
 
-      - name: export
-        runAfter:
-          - redis-data02
-        params:
-          - name: src-context
-            value: "$(params.src-context)"
-          - name: src-namespace
-            value: "$(params.src-namespace)"
-        taskRef:
-          name: crane-export
-          kind: ClusterTask
-        workspaces:
-          - name: export
-            workspace: shared-data
-            subPath: export
-          - name: kubeconfig
-            workspace: kubeconfig
-
       - name: transform
         # https://tekton.dev/docs/pipelines/pipelines/#using-the-runafter-parameter
         # We are using this to enforce ordering on task executions
         runAfter:
-          - export
+          - redis-data02
         taskRef:
           name: crane-transform
           kind: ClusterTask

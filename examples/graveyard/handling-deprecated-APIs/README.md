@@ -34,7 +34,7 @@ curl -s "https://raw.githubusercontent.com/konveyor/crane/main/hack/minikube-clu
 * Create [Tekton PipelineRun](https://tekton.dev/docs/pipelines/pipelineruns/)
     that includes kubectl-convert step to completely migrate the application.
 
-# Before you begin
+# Before You Begin
 
 You will need a "source" and "destination" Kubernetes cluster with Tekton and
 the Crane Runner ClusterTasks installed. The "source" cluster **MUST** be old
@@ -66,7 +66,7 @@ kubectl --context src version --short
 
 You should find a "Server version" of `v1.15.12`.
 
-# Deploy Guestbook application in "source" cluster
+# Deploy Guestbook Application in "source" Cluster
 
 You will be deploying an outdated version of the
 [Kubernetes' stateless guestbook application](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)

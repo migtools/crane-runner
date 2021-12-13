@@ -16,7 +16,7 @@ a pair of PersistentVolumeClaims.
     [Tekton PipelineRun](https://tekton.dev/docs/pipelines/pipelineruns/).
 * Verify application data was migrated.
 
-# Before you begin
+# Before You Begin
 
 You will need a "source" and "destination" Kubernetes cluster with Tekton and
 the Crane Runner ClusterTasks installed. Below are the steps required for easy
@@ -35,7 +35,7 @@ kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready p
 kustomize build github.com/konveyor/crane-runner/manifests | kubectl --context dest apply -f -
 ```
 
-# Deploy Guestbook application in "source" cluster
+# Deploy Guestbook Application in "source" Cluster
 
 You will be deploying
 [Kubernetes' stateless guestbook application](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
@@ -53,7 +53,9 @@ kustomize build github.com/konveyor/crane-runner/examples/resources/guestbook-pe
 kubectl --context src --namespace guestbook wait --for=condition=ready pod --selector=app=guestbook --timeout=180s
 ```
 
-**NOTE** If you previously deployed the guestbook application, it may be missing
+**NOTE**
+
+If you previously deployed the guestbook application, it may be missing
 PVCs. At a minimum, you should run:
 
 ```bash
@@ -73,11 +75,17 @@ kubectl --context dest create namespace guestbook
 
 You must upload your kubeconfig as a secret. This will be used by the
 ClusterTasks to migrate the application.
+
 ```bash
 kubectl config view --flatten | kubectl --context dest --namespace guestbook create secret generic kubeconfig --from-file=config=/dev/stdin
 ```
 
 # Add Data
+
+**NOTE**
+
+Before proceeding, check [Before You Begin](#before-you-begin) and double check
+that your application is using storage.
 
 Expose the application's frontend.
 
@@ -93,12 +101,14 @@ guestbook.
 
 # Migrate Application Data
 
+Submit a PipelineRun that will migrate the Guestbook application data.
+
 ```bash
 cat <<EOF | kubectl --context dest --namespace guestbook create -f -
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  generateName: stateful-app-migrate-
+  generateName: stateful-app-migration-
 spec:
   pipelineSpec:
     workspaces:
@@ -149,13 +159,34 @@ spec:
 EOF
 ```
 
-# Migrate Application Workloads
+**NOTE**
+The `runAfter` is used to enforce ordering here because of
+[this issue in `crane`](https://github.com/konveyor/crane/issues/66).
+
+At this point, you should have `redis-data01` and `redis-data02` available in
+your "destination" cluster:
 
 ```bash
-kubectl --context dest --namespace guestbook create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/005_stateful-app-migrate/pipelinerun.yaml"
+kubectl --context dest --namespace guestbook get pvc
 ```
 
-# Did it Work?
+# Migrate Application Workloads
+
+Now you'll submit a PipelineRun that will look familiar if you've completed
+previous examples. It simply mirrors the workloads from "source" to
+"destination" cluster.
+
+```bash
+kubectl --context dest --namespace guestbook create -f "https://raw.githubusercontent.com/konveyor/crane-runner/main/examples/stateful-app-migration/pipelinerun.yaml"
+```
+
+Keep an eye on pipeline progress via:
+
+```bash
+watch kubectl --context dest --namespace guestbook get pipelineruns,taskruns,pods
+```
+
+# Verify Application Migration
 
 Expose the application's frontend.
 
@@ -167,3 +198,15 @@ kubectl --context dest --namespace guestbook port-forward svc/frontend 8080:80
 
 Now you can navigate to localhost:8080 in your browser and verify that the
 messages were maintained during migration.
+
+# What's Next
+
+* Check out [Stateful Application Stage and Migrate](/examples/stateful-app-stage-and-migrate/README.md)
+* Read more about [Tekton](https://tekton.dev/docs/getting-started/)
+* Read more about [Crane](https://github.com/konveyor/crane)
+
+# Cleanup
+
+```bash
+kubectl --context dest delete namespace guestbook
+```
