@@ -168,6 +168,7 @@ could use it to configure crane's `transform` behavior.
 An example configmap would look something like:
 
 ```
+# IMPORTANT: DO NOT RUN - EXAMPLE
 cat <<EOF | kubectl apply --namespace ${NAMESPACE} -f -
 apiVersion: v1
 kind: ConfigMap
