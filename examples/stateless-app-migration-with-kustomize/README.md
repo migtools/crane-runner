@@ -141,7 +141,7 @@ kubectl --context dest --namespace hello-kustomize get all
 Then, verify the Guestbook application's frontend is running properly:
 
 ```bash
-kubectl --context src --namespace hello-kustomize port-forward svc/frontend 8080:80
+kubectl --context dest --namespace hello-kustomize port-forward svc/frontend 8080:80
 ```
 
 Then navigate to localhost:8080 from your browser.
