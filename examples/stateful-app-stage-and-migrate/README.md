@@ -46,7 +46,7 @@ kubectl --context dest apply -f "https://storage.googleapis.com/tekton-releases/
 kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=180s
 
 # Install Crane Runner manifests
-kustomize build github.com/konveyor/crane-runner/manifests | kubectl --context dest apply -f -
+kubectl --context dest apply -k github.com/konveyor/crane-runner/manifests
 ```
 
 # Deploy Guestbook Application in "source" Cluster
@@ -63,7 +63,7 @@ and follower. The guestbook application consisists of:
 
 ```bash
 kubectl --context src create namespace guestbook
-kustomize build github.com/konveyor/crane-runner/examples/resources/guestbook-persistent | kubectl --context src --namespace guestbook apply -f -
+kubectl --context src --namespace guestbook apply -k github.com/konveyor/crane-runner/examples/resources/guestbook-persistent
 kubectl --context src --namespace guestbook wait --for=condition=ready pod --selector=app=guestbook --timeout=180s
 ```
 
@@ -71,7 +71,7 @@ kubectl --context src --namespace guestbook wait --for=condition=ready pod --sel
 PVCs. At a minimum, you should run:
 
 ```bash
-kustomize build github.com/konveyor/crane-runner/examples/resources/guestbook-persistent | kubectl --context src --namespace guestbook apply -f -
+kubectl --context src --namespace guestbook apply -k github.com/konveyor/crane-runner/examples/resources/guestbook-persistent
 ```
 
 This will create two PVCs bound to the redis leader and follower deployments.
