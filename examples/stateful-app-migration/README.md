@@ -24,7 +24,9 @@ copy/paste:
 
 ```bash
 # Start up "source" and "destination" clusters in minikube
-curl -s "https://raw.githubusercontent.com/konveyor/crane/main/hack/minikube-clusters-start.sh" | bash
+wget "https://raw.githubusercontent.com/konveyor/crane/main/hack/minikube-clusters-start.sh"
+chmod +x minikube-clusters-start.sh
+./minikube-clusters-start.sh
 
 # Install Tekton
 # See https://tekton.dev/docs/getting-started/ for help with installing Tekton
