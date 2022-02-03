@@ -176,7 +176,7 @@ Name it whatever you would like, ie `crane-guestbook-gitops`, and then create a
 TaskRun that uploads the manifests.
 
 ```bash
-GIT_REMOTE_URL="https://github.com/${__YOUR_GITHUB_ID__}/crane-guestbook-gitops.git"
+GIT_REMOTE_URL="https://github.com/${__YOUR_GITHUB_USERNAME__}/crane-guestbook-gitops.git"
 GIT_USER_NAME="${__YOUR_GIT_USERNAME__}"
 GIT_USER_EMAIL="${__YOUR_GIT_EMAIL__}"
 
