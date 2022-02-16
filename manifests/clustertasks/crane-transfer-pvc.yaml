@@ -45,7 +45,7 @@ spec:
         The name of the networking endpoint to be used for ingress traffic in the destination cluster
   steps:
     - name: crane-transfer-pvc
-      image: quay.io/konveyor/crane-runner:latest
+      image: quay.io/djzager/crane-runner:alpha
       script: |
         /crane transfer-pvc \
           --destination-context=$(params.dest-context) \

@@ -3,12 +3,16 @@ kind: Kustomization
 commonLabels:
   app: crane-runner
 resources:
-  - crane-apply.yaml
+  - crane-kubeconfig-generator.yaml
   - crane-export.yaml
-  - crane-transfer-pvc.yaml
   - crane-transform.yaml
-  - git-init-push.yaml
-  - kubectl-apply-files.yaml
+  - crane-apply.yaml
+  - crane-kustomize-init.yaml
   - kubectl-apply-kustomize.yaml
-  - kubectl-scale-down.yaml
-  - kustomize-namespace.yaml
+  # - crane-transfer-pvc.yaml
+  # - git-init-push.yaml
+  # - kubectl-apply-files.yaml
+  # - kubectl-scale-down.yaml
+  # - kustomize-namespace.yaml
+spec:
+  steps: []

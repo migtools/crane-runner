@@ -3,12 +3,12 @@ kind: ClusterTask
 metadata:
   name: crane-export
   annotations:
-    migration.openshift.io/placeholder: "true"
     description: |
-      Export all of the resources from a given cluster's namespace.
+      Discover, and write to disk, all of the resources from a specified
+      cluster's namespace.
 spec:
   params:
-    - name: src-context
+    - name: context
       type: string
       description: |
         The name of the context from kubeconfig representing the source
@@ -17,24 +17,25 @@ spec:
         You can get this information in your current environment using
         `kubectl config get-contexts` to describe your one or many
         contexts.
-    - name: src-namespace
+      default: ""
+    - name: namespace
       type: string
       description: |
-        The source cluster namespace from which to export resources.
+        The namespace from which to export resources.
+      default: ""
   steps:
     - name: crane-export
-      image: quay.io/konveyor/crane-runner:latest
+      image: quay.io/djzager/crane-runner:alpha
       script: |
         /crane export \
-          --context=$(params.src-context) \
-          --namespace=$(params.src-namespace) \
-          --export-dir=$(workspaces.export.path)
+          --context="$(params.context)" \
+          --namespace="$(params.namespace)" \
+          --export-dir="$(workspaces.export.path)"
 
-        # Do this so we have some breadcrumbs in case our demo blows up
         find $(workspaces.export.path)
       env:
         - name: KUBECONFIG
-          value: $(workspaces.kubeconfig.path)/config
+          value: $(workspaces.kubeconfig.path)/kubeconfig
   workspaces:
     - name: export
       description: |
@@ -43,4 +44,4 @@ spec:
       mountPath: /var/crane/export
     - name: kubeconfig
       description: |
-        The kubeconfig for accessing the source cluster.
+        The kubeconfig for accessing the cluster.

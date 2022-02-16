@@ -22,7 +22,7 @@ spec:
         The resource to be scaled down in type/name format (ie. deployment/mysql or rc/foo)
   steps:
     - name: kubectl-scale-down
-      image: quay.io/konveyor/crane-runner:latest
+      image: quay.io/djzager/crane-runner:alpha
       script: |
         kubectl scale --context $(params.context) --namespace $(params.namespace) --replicas=0 $(params.type-name-resource)
       env:

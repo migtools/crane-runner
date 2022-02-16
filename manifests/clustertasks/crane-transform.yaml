@@ -4,26 +4,32 @@ metadata:
   name: crane-transform
   annotations:
     description: |
-      This is where a really long-form explanation of what is happening in
-      crane-transform ClusterTask would go.
+      Take the resources from a `crane-export` and generate JSON patches to
+      remove
 spec:
+  params:
+    - name: optional-flags
+      type: string
+      description: |
+        Comma separated list of `flag-name=value` pairs. These flags with values
+        will be passed into all plugins that are executed in the transform
+        operation.
+      default: ""
   steps:
     - name: crane-transform
-      image: quay.io/konveyor/crane-runner:latest
+      image: quay.io/djzager/crane-runner:alpha
       script: |
-        /crane version
         /crane transform \
-          --ignored-patches-dir=$(workspaces.ignored-patches.path) \
-          --flags-file=$(workspaces.craneconfig.path) \
-          --export-dir=$(workspaces.export.path) \
+          --ignored-patches-dir="$(workspaces.ignored-patches.path)" \
+          --flags-file="$(workspaces.craneconfig.path)" \
+          --optional-flags="$(params.optional-flags)" \
+          --export-dir="$(workspaces.export.path)" \
           --transform-dir=$(workspaces.transform.path)
 
-        # Do this so we have some breadcrumbs in case our demo blows up
         find $(workspaces.transform.path)
         if [ "$(workspaces.ignored-patches.bound)" == "true" ]; then
           find $(workspaces.ignored-patches.path)
         fi
-  # https://github.com/tektoncd/pipeline/blob/main/docs/workspaces.md#using-workspaces-in-tasks
   workspaces:
     - name: export
       description: |

@@ -15,7 +15,7 @@ spec:
       description: The namespace we are importing to.
   steps:
     - name: kustomize-namespace
-      image: quay.io/konveyor/crane-runner:latest
+      image: quay.io/djzager/crane-runner:alpha
       script: |
         # Make common base directory
         kustomize_base_dir="$(workspaces.kustomize.path)/base"

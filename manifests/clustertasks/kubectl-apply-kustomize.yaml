@@ -6,30 +6,29 @@ metadata:
     description: |
       Run kubectl apply -k against a kustomize directory.
 spec:
-  # These are all required parameters to the task when we write a Pipeline using
-  # this task, we must ensure that these parameters are supplied.
   params:
-    - name: dest-context
+    - name: context
       type: string
       description: The context from the kubeconfig that represents the destination cluster.
+      default: ""
   steps:
     - name: kubectl-apply
-      image: quay.io/konveyor/crane-runner:latest
+      image: quay.io/djzager/crane-runner:alpha
       script: |
-        # TODO(djzager): come up with better way to use internal ip
-        kubectl --context $(params.dest-context) config view --flatten --minify > kubeconfig
-        yq eval --inplace --exit-status '.clusters[0].cluster.server |= "https://kubernetes.default.svc"' kubeconfig
-        export KUBECONFIG=$(pwd)/kubeconfig
+        if [ "$(workspaces.kubeconfig.bound)" == "true" ] ; then
+          export KUBECONFIG="$(workspaces.kubeconfig.path)/kubeconfig"
+        fi
 
-        kubectl apply -k $(workspaces.kustomize.path)/
-      env:
-        - name: KUBECONFIG
-          value: $(workspaces.kubeconfig.path)/config
-  # https://github.com/tektoncd/pipeline/blob/main/docs/workspaces.md#using-workspaces-in-tasks
+        kubectl --context="$(params.context)" apply -k "$(workspaces.kustomize.path)"
   workspaces:
     - name: kustomize
       description: |
-        This is the folder storing a kustomization file to be applied.
+        This is the folder storing a kustomization.yaml file to be applied.
     - name: kubeconfig
       description: |
-        The user's kubeconfig
+        The user's kubeconfig. Otherwise, will just rely on mounted credentials
+        to access the cluster's API server.
+
+        See https://kubernetes.io/docs/tasks/run-application/access-api-from-pod
+        for more details.
+      optional: true

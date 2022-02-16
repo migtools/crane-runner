@@ -14,7 +14,7 @@ spec:
       description: The context from the kubeconfig that represents the destination cluster.
   steps:
     - name: kubectl-apply
-      image: quay.io/konveyor/crane-runner:latest
+      image: quay.io/djzager/crane-runner:alpha
       script: |
         # TODO(djzager): come up with better way to use internal ip
         kubectl --context $(params.dest-context) config view --flatten --minify > kubeconfig
