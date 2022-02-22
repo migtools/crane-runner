@@ -47,7 +47,7 @@ spec:
     - name: crane-transfer-pvc
       image: quay.io/djzager/crane-runner:alpha
       script: |
-        /crane transfer-pvc \
+        crane transfer-pvc \
           --destination-context=$(params.dest-context) \
           --source-context=$(params.src-context) \
           --pvc-name $(params.pvc-name) \

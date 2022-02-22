@@ -14,5 +14,3 @@ resources:
   # - kubectl-apply-files.yaml
   # - kubectl-scale-down.yaml
   # - kustomize-namespace.yaml
-spec:
-  steps: []

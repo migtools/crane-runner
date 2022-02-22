@@ -37,10 +37,10 @@ spec:
           --labels "$(params.labels)" \
           --nameprefix "$(params.name-prefix)" \
           --namespace "$(params.namespace)" \
-          --nameSuffix "$(params.name-suffix)"
+          --namesuffix "$(params.name-suffix)"
         kustomize build
         popd
-        tree "$(workspaces.kustomize.path)"
+        find "$(workspaces.kustomize.path)"
   workspaces:
     - name: apply
       description: |

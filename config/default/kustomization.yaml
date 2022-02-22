@@ -3,4 +3,4 @@ kind: Kustomization
 commonLabels:
   app: crane-runner
 resources:
-  - clustertasks/
+  - ../clustertasks/

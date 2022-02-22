@@ -11,7 +11,7 @@ spec:
     - name: crane-apply
       image: quay.io/djzager/crane-runner:alpha
       script: |
-        /crane apply \
+        crane apply \
           --export-dir=$(workspaces.export.path) \
           --transform-dir=$(workspaces.transform.path) \
           --output-dir=$(workspaces.apply.path)

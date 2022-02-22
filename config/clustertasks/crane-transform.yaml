@@ -19,17 +19,33 @@ spec:
     - name: crane-transform
       image: quay.io/djzager/crane-runner:alpha
       script: |
-        /crane transform \
-          --ignored-patches-dir="$(workspaces.ignored-patches.path)" \
-          --flags-file="$(workspaces.craneconfig.path)" \
-          --optional-flags="$(params.optional-flags)" \
-          --export-dir="$(workspaces.export.path)" \
-          --transform-dir=$(workspaces.transform.path)
-
-        find $(workspaces.transform.path)
-        if [ "$(workspaces.ignored-patches.bound)" == "true" ]; then
-          find $(workspaces.ignored-patches.path)
+        args="--export-dir=$(workspaces.export.path)"
+        args+=" --transform-dir=$(workspaces.transform.path)"
+        if [ -n "${IGNORED_PATCHES_DIR}" ]; then
+          args+=" --ignored-patches-dir=${IGNORED_PATCHES_DIR}"
         fi
+        if [ -n "${OPTIONAL_FLAGS}" ]; then
+          args+=" --optional-flags=${OPTIONAL_FLAGS}"
+        fi
+        if [ -n "${CRANE_CONFIG}" ]; then
+          args+=" --flags-file=${CRANE_CONFIG}"
+        fi
+
+        crane transform "${args}"
+
+        find "$(workspaces.transform.path)"
+        if [ -n "${IGNORED_PATCHES_DIR}" ]; then
+          echo
+          echo "...IGNORED PATCHES..."
+          find "${IGNORED_PATCHES_DIR}"
+        fi
+      env:
+        - name: IGNORED_PATCHES_DIR
+          value: "$(workspaces.ignored-patches.path)"
+        - name: CRANE_CONFIG
+          value: "$(workspaces.careconfig.path)"
+        - name: OPTIONAL_FLAGS
+          value: "$(params.optional-flags)"
   workspaces:
     - name: export
       description: |
