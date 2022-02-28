@@ -36,7 +36,7 @@ kubectl --context dest apply -f "https://storage.googleapis.com/tekton-releases/
 kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=180s
 
 # Install Crane Runner manifests
-kubectl --context dest apply -k github.com/konveyor/crane-runner/manifests
+kubectl --context dest apply -k github.com/konveyor/crane-runner/examples/gitops-integration
 
 # Install Argo CD
 # See https://argo-cd.readthedocs.io/en/stable/getting_started/ for help installing Argo CD
@@ -169,6 +169,13 @@ At this stage, the Guestbook application's manifests should be safely stored in
 the `guestbook-gitops-example` volume created earlier.
 
 # Push Manifests to GitHub
+
+**NOTE** Before proceeding make sure that you the `git-init-push` ClusterTask
+has been installed in the cluster.
+
+```bash
+kubectl --context dest apply -k github.com/konveyor/crane-runner/examples/gitops-integration
+```
 
 Now you want to push your Kustomize manifests to GitHub. Before you do that, you
 must create a GitHub repo to hold your Guestbook application manifests.

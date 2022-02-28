@@ -3,12 +3,11 @@ kind: ClusterTask
 metadata:
   name: crane-transfer-pvc
   annotations:
-    migration.openshift.io/placeholder: "true"
     description: |
       Sync's a single PVC from source to destination cluster
 spec:
   params:
-    - name: src-context
+    - name: source-context
       type: string
       description: |
         The name of the context from kubeconfig representing the source
@@ -17,11 +16,14 @@ spec:
         You can get this information in your current environment using
         `kubectl config get-contexts` to describe your one or many
         contexts.
-    # TODO(djzager): Use this when we can provide a namespace mapping
-    # - name: src-namespace
-    #   type: string
-    #   description: |
-    #     The source cluster namespace in which pvc is synced.
+    - name: source-namespace
+      type: string
+      description: |
+        The source cluster namespace in which pvc is synced.
+    - name: source-pvc-name
+      type: string
+      description: |
+        The name of the pvc to be synced from source cluster.
     - name: dest-context
       type: string
       description: |
@@ -31,31 +33,56 @@ spec:
         You can get this information in your current environment using
         `kubectl config get-contexts` to describe your one or many
         contexts.
+    - name: dest-pvc-name
+      type: string
+      description: |
+        The name to give pvc in destination cluster.
+      default: ""
     - name: dest-namespace
       type: string
       description: |
-        The destination cluster namespace in which pvc is synced.
-    - name: pvc-name
+        The source cluster namespace in which pvc is synced.
+      default: ""
+    - name: dest-storage-class-name
       type: string
       description: |
-        The name of the pvc to be synced.
+        The name of the storage class to use in the destination cluster.
+      default: ""
+    - name: dest-pvc-capacity
+      type: string
+      description: |
+        Size of the destination volume to create.
+      default: ""
     - name: endpoint-type
       type: string
       description: |
         The name of the networking endpoint to be used for ingress traffic in the destination cluster
+      default: ""
   steps:
     - name: crane-transfer-pvc
-      image: quay.io/djzager/crane-runner:alpha
+      image: quay.io/konveyor/crane-runner:latest
       script: |
         crane transfer-pvc \
+          --source-context=$(params.source-context) \
           --destination-context=$(params.dest-context) \
-          --source-context=$(params.src-context) \
-          --pvc-name $(params.pvc-name) \
-          --pvc-namespace $(params.dest-namespace) \
+          --pvc-name $(params.source-pvc-name):$(params.dest-pvc-name) \
+          --pvc-namespace $(params.source-namespace):$(params.dest-namespace) \
+          --dest-pvc-storage-class-name $(params.dest-storage-class-name) \
+          --pvc-requests-storage $(params.dest-pvc-capacity) \
           --endpoint $(params.endpoint-type)
       env:
         - name: KUBECONFIG
-          value: $(workspaces.kubeconfig.path)/config
+          value: $(workspaces.kubeconfig.path)/kubeconfig
+        - name: DEST_PVC_NAME
+          value: $(params.dest-pvc-name)
+        - name: DEST_NAMESPACE
+          value: $(params.dest-namespace)
+        - name: DEST_STORAGE_CLASS_NAME
+          value: $(params.dest-storage-class-name)
+        - name: DEST_PVC_CAPACITY
+          value: $(params.dest-pvc-capacity)
+        - name: ENDPOINT_TYPE
+          value: $(params.endpoint-type)
   workspaces:
     - name: kubeconfig
       description: |

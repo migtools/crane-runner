@@ -7,10 +7,8 @@ resources:
   - crane-export.yaml
   - crane-transform.yaml
   - crane-apply.yaml
+  - crane-transfer-pvc.yaml
+  - crane-kubectl-scale-down.yaml
   - crane-kustomize-init.yaml
   - kubectl-apply-kustomize.yaml
-  # - crane-transfer-pvc.yaml
-  # - git-init-push.yaml
-  # - kubectl-apply-files.yaml
-  # - kubectl-scale-down.yaml
-  # - kustomize-namespace.yaml
+  - kubectl-apply-files.yaml

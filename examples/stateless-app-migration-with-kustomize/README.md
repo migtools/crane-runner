@@ -40,7 +40,7 @@ kubectl --context dest apply -f "https://storage.googleapis.com/tekton-releases/
 kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=180s
 
 # Install Crane Runner manifests
-kubectl --context dest apply -k github.com/konveyor/crane-runner/manifests
+kubectl --context dest apply -k github.com/konveyor/crane-runner/config/default
 ```
 
 # Deploy Guestbook Application in "source" Cluster
@@ -79,10 +79,10 @@ kubectl config view --flatten | kubectl --context dest --namespace hello-kustomi
 
 # Explore new ClusterTasks
 
-* The [kustomize-namespace ClusterTask](/manifests/clustertasks/kustomize-namespace.yaml)
+* The [kustomize-namespace ClusterTask](/config/clustertasks/kustomize-namespace.yaml)
     takes a directory storing the result of crane's `apply` step and creates a
     kustomize overlay.
-* The [kubectl-apply-kustomize](/manifests/clustertasks/kubectl-apply-kustomize.yaml)
+* The [kubectl-apply-kustomize](/config/clustertasks/kubectl-apply-kustomize.yaml)
     runs `kubectl apply -k` against a Kustomize directory.
 
 # Create Tekton PipelineRun

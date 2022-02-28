@@ -35,7 +35,7 @@ kubectl --context dest apply -f "https://storage.googleapis.com/tekton-releases/
 kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=180s
 
 # Install Crane Runner manifests
-kubectl --context dest apply -k github.com/konveyor/crane-runner/manifests
+kubectl --context dest apply -k github.com/konveyor/crane-runner/config/default
 ```
 
 # Deploy Guestbook Application in "source" Cluster
@@ -114,9 +114,9 @@ metadata:
   generateName: stateless-app-mirror-export-
 spec:
   params:
-  - name: src-context
+  - name: context
     value: src
-  - name: src-namespace
+  - name: namespace
     value: guestbook
   taskRef:
     name: crane-export
@@ -163,7 +163,7 @@ EOF
 **NOTE**
 
 If you look at the
-[crane-transform ClusterTask](/manifests/clustertasks/crane-transform.yaml),
+[crane-transform ClusterTask](/config/clustertasks/crane-transform.yaml),
 you will notice it can leverage a `craneconfig` workspace. If provided, you
 could use it to configure crane's `transform` behavior.
 

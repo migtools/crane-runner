@@ -27,9 +27,9 @@ spec:
 
       - name: export
         params:
-          - name: src-context
+          - name: context
             value: "$(params.src-context)"
-          - name: src-namespace
+          - name: namespace
             value: "$(params.src-namespace)"
         taskRef:
           name: crane-export
@@ -65,7 +65,7 @@ spec:
           name: crane-transfer-pvc
           kind: ClusterTask
         params:
-          - name: src-context
+          - name: source-context
             value: "$(params.src-context)"
           - name: dest-context
             value: "$(params.dest-context)"
@@ -86,7 +86,7 @@ spec:
           name: crane-transfer-pvc
           kind: ClusterTask
         params:
-        - name: src-context
+        - name: source-context
           value: src
         - name: dest-context
           value: dest
