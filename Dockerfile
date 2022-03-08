@@ -1,7 +1,8 @@
 FROM registry.ci.openshift.org/openshift/release:golang-1.17 as crane-bin
 ENV GOFLAGS "-mod=mod"
-WORKDIR /go/src/github.com/konveyor/crane
-RUN git clone https://github.com/konveyor/crane.git .
+WORKDIR /go/src/github.com/pranavgaikwad/crane
+RUN git clone https://github.com/pranavgaikwad/crane.git .
+RUN git checkout sprint215
 RUN go build -a -o /build/crane main.go
 
 FROM registry.redhat.io/openshift4/ose-cli:latest as cli-bin
