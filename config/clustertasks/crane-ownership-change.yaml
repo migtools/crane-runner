@@ -1,0 +1,38 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: crane-ownership-change
+  annotations:
+    description: |
+      Manipulate file ownership
+spec:
+  params:
+    - name: namespace
+      type: string
+      description: |
+        Namespace to use when scaling down resources
+      default: ""
+    - name: pvcs
+      type: string
+      description: |
+        Comma separated list of PVC names to change ownership
+    - name: context
+      type: string
+      description: |
+        The name of the context from kubeconfig representing the cluster.
+  steps:
+    - name: crane-chown
+      image: quay.io/pranavgaikwad/chown-executor:latest
+      env:
+        - name: KUBECONFIG
+          value: $(workspaces.kubeconfig.path)/kubeconfig
+        - name: CONTEXT
+          value: $(params.context)
+        - name: NAMESPACE
+          value: $(params.namespace)
+        - name: PVCS
+          value: $(params.pvcs)
+  workspaces:
+    - name: kubeconfig
+      description: |
+        The kubeconfig for accessing the clusters.

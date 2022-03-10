@@ -25,7 +25,11 @@ spec:
     - name: kubectl-scale-down
       image: quay.io/konveyor/crane-runner:latest
       script: |
-        kubectl scale --context "$(params.context)" --namespace "$(params.namespace)" --replicas=0 "$(params.resource-type)" --all
+        #!/bin/bash
+        count=$(kubectl get --context "$(params.context)" "$(params.resource-type)" --namespace "$(params.namespace)" 2> /dev/null | wc -l)
+        if [ $count -ne "0" ]; then
+          kubectl scale --context "$(params.context)" --namespace "$(params.namespace)" --replicas=0 "$(params.resource-type)" --all;
+        fi
       env:
         - name: KUBECONFIG
           value: $(workspaces.kubeconfig.path)/kubeconfig

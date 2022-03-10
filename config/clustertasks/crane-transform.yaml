@@ -8,6 +8,14 @@ metadata:
       remove cluster specific metadata and status information. If optional-flags
       are defined, they will be passed to all enabled plugins.
 spec:
+  params:
+    - name: optional-flags
+      type: string
+      description: |
+        Comma separated list of `flag-name=value` pairs. These flags with values
+        will be passed into all plugins that are executed in the transform
+        operation.
+      default: "[]"
   steps:
     - name: crane-transform
       image: quay.io/konveyor/crane-runner:latest
@@ -15,6 +23,7 @@ spec:
         crane transform \
           --ignored-patches-dir="$(workspaces.ignored-patches.path)" \
           --flags-file="$(workspaces.craneconfig.path)" \
+          --optional-flags="$(params.optional-flags)" \
           --export-dir="$(workspaces.export.path)" \
           --transform-dir=$(workspaces.transform.path)
 
