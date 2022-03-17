@@ -17,7 +17,7 @@ spec:
       default: "[]"
   steps:
     - name: crane-transform
-      image: quay.io/djzager/crane-runner:alpha
+      image: quay.io/konveyor/crane-runner:latest
       script: |
         crane transform \
           --ignored-patches-dir="$(workspaces.ignored-patches.path)" \

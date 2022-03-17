@@ -27,7 +27,7 @@ spec:
       default: ""
   steps:
     - name: kustomize-namespace
-      image: quay.io/djzager/crane-runner:alpha
+      image: quay.io/konveyor/crane-runner:latest
       script: |
         # Copy apply resources into kustomize workspace
         cp -r "$(workspaces.apply.path)/resources/$(params.source-namespace)/." "$(workspaces.kustomize.path)"

@@ -9,7 +9,7 @@ metadata:
 spec:
   steps:
     - name: crane-apply
-      image: quay.io/djzager/crane-runner:alpha
+      image: quay.io/konveyor/crane-runner:latest
       script: |
         crane apply \
           --export-dir=$(workspaces.export.path) \

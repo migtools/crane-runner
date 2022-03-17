@@ -23,7 +23,7 @@ spec:
         The namespace from which to export resources.
   steps:
     - name: crane-export
-      image: quay.io/djzager/crane-runner:alpha
+      image: quay.io/konveyor/crane-runner:latest
       script: |
         crane export \
           --context="$(params.context)" \
