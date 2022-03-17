@@ -4,8 +4,7 @@ metadata:
   name: crane-apply
   annotations:
     description: |
-      This is where a really long-form explanation of what is happening in
-      crane-apply ClusterTask would go.
+      Generate YAML by applying transformations to the exported resources.
 spec:
   steps:
     - name: crane-apply

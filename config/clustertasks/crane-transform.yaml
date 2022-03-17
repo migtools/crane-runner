@@ -5,7 +5,8 @@ metadata:
   annotations:
     description: |
       Take the resources from a `crane-export` and generate JSON patches to
-      remove
+      remove cluster specific metadata and status information. If optional-flags
+      are defined, they will be passed to all enabled plugins.
 spec:
   params:
     - name: optional-flags

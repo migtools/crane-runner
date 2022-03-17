@@ -3,7 +3,8 @@ kind: ClusterTask
 metadata:
   name: crane-kustomize-init
   annotations:
-    description: "Initialize a kustomization.yaml for the manifests generated in crane-apply. \n"
+    description: |
+      Initialize a kustomization.yaml for the manifests generated in crane-apply.
 spec:
   params:
     - name: source-namespace
