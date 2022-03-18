@@ -34,7 +34,7 @@ kubectl --context dest apply -f "https://storage.googleapis.com/tekton-releases/
 kubectl --context dest --namespace tekton-pipelines wait --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=180s
 
 # Install Crane Runner manifests
-kubectl --context dest apply -k github.com/konveyor/crane-runner/manifests
+kubectl --context dest apply -k github.com/konveyor/crane-runner/config/default
 ```
 
 # Deploy Guestbook Application in "source" Cluster

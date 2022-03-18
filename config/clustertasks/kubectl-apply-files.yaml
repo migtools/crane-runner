@@ -1,0 +1,35 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: kubectl-apply-files
+  annotations:
+    description: |
+      Take the resources from crane-apply and run kubectl apply -f.
+spec:
+  params:
+    - name: context
+      type: string
+      description: The context from the kubeconfig that represents the destination cluster.
+      default: ""
+  steps:
+    - name: kubectl-apply
+      image: quay.io/konveyor/crane-runner:latest
+      script: |
+        if [ "$(workspaces.kubeconfig.bound)" == "true" ] ; then
+          export KUBECONFIG="$(workspaces.kubeconfig.path)/kubeconfig"
+        fi
+
+        kubectl apply --recursive=true -f $(workspaces.apply.path)/
+  workspaces:
+    - name: apply
+      description: |
+        This is the folder storing the resources to be applied using kubectl.
+      mountPath: /var/crane/apply
+    - name: kubeconfig
+      description: |
+        The user's kubeconfig. Otherwise, will just rely on mounted credentials
+        to access the cluster's API server.
+
+        See https://kubernetes.io/docs/tasks/run-application/access-api-from-pod
+        for more details.
+      optional: true

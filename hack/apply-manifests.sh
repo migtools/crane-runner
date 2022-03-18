@@ -11,9 +11,9 @@ CONTEXT="${CONTEXT:-dest}"
 set -ex
 
 if [ -z "${RUNNER_IMAGE}" ]; then
-  kustomize build manifests/clustertasks | kubectl --context="${CONTEXT}" apply -f -
+  kustomize build config/clustertasks | kubectl --context="${CONTEXT}" apply -f -
 else
-  kustomize build manifests/clustertasks | \
+  kustomize build config/clustertasks | \
     runner="${RUNNER_IMAGE}" yq eval --exit-status \
     '.spec.steps[].image |= strenv(runner)' - | kubectl --context="${CONTEXT}" apply -f -
 fi

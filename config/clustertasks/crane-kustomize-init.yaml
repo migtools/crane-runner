@@ -1,0 +1,52 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: crane-kustomize-init
+  annotations:
+    description: |
+      Initialize a kustomization.yaml for the manifests generated in crane-apply.
+spec:
+  params:
+    - name: source-namespace
+      type: string
+      description: Source namespace from export.
+    - name: labels
+      type: string
+      description: Add one or more labels
+      default: ""
+    - name: name-prefix
+      type: string
+      description: Set the namePrefix field in the kustomization file.
+      default: ""
+    - name: namespace
+      type: string
+      description: Sets the value of the namespace field in the kustomization file.
+      default: ""
+    - name: name-suffix
+      type: string
+      description: Set the nameSuffix field in the kustomization file.
+      default: ""
+  steps:
+    - name: kustomize-namespace
+      image: quay.io/konveyor/crane-runner:latest
+      script: |
+        # Copy apply resources into kustomize workspace
+        cp -r "$(workspaces.apply.path)/resources/$(params.source-namespace)/." "$(workspaces.kustomize.path)"
+
+        pushd "$(workspaces.kustomize.path)"
+        kustomize init --autodetect \
+          --labels "$(params.labels)" \
+          --nameprefix "$(params.name-prefix)" \
+          --namespace "$(params.namespace)" \
+          --namesuffix "$(params.name-suffix)"
+        kustomize build
+        popd
+        find "$(workspaces.kustomize.path)"
+  workspaces:
+    - name: apply
+      description: |
+        This is the folder where the results from crane-apply are stored.
+      mountPath: /var/crane/apply
+    - name: kustomize
+      description: |
+        This is where the kustomize related manifests will be saved.

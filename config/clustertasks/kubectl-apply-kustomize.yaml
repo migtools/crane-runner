@@ -1,0 +1,34 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: kubectl-apply-kustomize
+  annotations:
+    description: |
+      Run kubectl apply -k against a kustomize directory.
+spec:
+  params:
+    - name: context
+      type: string
+      description: The context from the kubeconfig that represents the destination cluster.
+      default: ""
+  steps:
+    - name: kubectl-apply
+      image: quay.io/konveyor/crane-runner:latest
+      script: |
+        if [ "$(workspaces.kubeconfig.bound)" == "true" ] ; then
+          export KUBECONFIG="$(workspaces.kubeconfig.path)/kubeconfig"
+        fi
+
+        kubectl --context="$(params.context)" apply -k "$(workspaces.kustomize.path)"
+  workspaces:
+    - name: kustomize
+      description: |
+        This is the folder storing a kustomization.yaml file to be applied.
+    - name: kubeconfig
+      description: |
+        The user's kubeconfig. Otherwise, will just rely on mounted credentials
+        to access the cluster's API server.
+
+        See https://kubernetes.io/docs/tasks/run-application/access-api-from-pod
+        for more details.
+      optional: true

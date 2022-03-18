@@ -26,9 +26,9 @@ spec:
     tasks:
       - name: export
         params:
-          - name: src-context
+          - name: context
             value: "$(params.src-context)"
-          - name: src-namespace
+          - name: namespace
             value: "$(params.src-namespace)"
         taskRef:
           name: crane-export

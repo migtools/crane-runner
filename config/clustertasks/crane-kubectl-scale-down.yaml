@@ -3,7 +3,6 @@ kind: ClusterTask
 metadata:
   name: kubectl-scale-down
   annotations:
-    migration.openshift.io/placeholder: "true"
     description: |
       Scale resource down using kubectl scale.
 spec:
@@ -12,22 +11,24 @@ spec:
       type: string
       description: |
         Context to use when scaling down resources
+      default: ""
     - name: namespace
       type: string
       description: |
         Namespace to use when scaling down resources
-    - name: type-name-resource
+      default: ""
+    - name: resource-type
       type: string
       description: |
-        The resource to be scaled down in type/name format (ie. deployment/mysql or rc/foo)
+        The resource type to be scaled down.
   steps:
     - name: kubectl-scale-down
       image: quay.io/konveyor/crane-runner:latest
       script: |
-        kubectl scale --context $(params.context) --namespace $(params.namespace) --replicas=0 $(params.type-name-resource)
+        kubectl scale --context "$(params.context)" --namespace "$(params.namespace)" --replicas=0 "$(params.resource-type)" --all
       env:
         - name: KUBECONFIG
-          value: $(workspaces.kubeconfig.path)/config
+          value: $(workspaces.kubeconfig.path)/kubeconfig
   workspaces:
     - name: kubeconfig
       description: |

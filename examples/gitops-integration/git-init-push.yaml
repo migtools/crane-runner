@@ -25,7 +25,7 @@ spec:
       description: Git user.email
   steps:
     - name: git-init-push
-      image: quay.io/konveyor/crane-runner:latest
+      image: quay.io/djzager/crane-runner:alpha
       script: |
         git config --global user.email "$(params.user-email)"
         git config --global user.name "$(params.user-name)"

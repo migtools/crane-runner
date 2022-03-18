@@ -1,25 +1,26 @@
-FROM registry.ci.openshift.org/openshift/release:golang-1.16 as crane-bin
-
+FROM registry.ci.openshift.org/openshift/release:golang-1.17 as crane-bin
 ENV GOFLAGS "-mod=mod"
 WORKDIR /go/src/github.com/konveyor/crane
-
 RUN git clone https://github.com/konveyor/crane.git .
 RUN go build -a -o /build/crane main.go
 
-FROM registry.access.redhat.com/ubi8/ubi:latest
-
-COPY --from=crane-bin /build/crane /crane
-RUN /crane plugin-manager add OpenshiftPlugin
-
-# Helpful tools
-# TODO(djzager): Determine want can stay and what must go
-RUN curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz" | \
-    tar xvzf - -C /usr/bin/ oc kubectl
-RUN curl -sL "https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_amd64.tar.gz" | \
-    tar xvzf - -C /usr/bin/ ./yq_linux_amd64 && \
-    mv /usr/bin/yq_linux_amd64 /usr/bin/yq
+FROM registry.redhat.io/openshift4/ose-cli:latest as cli-bin
+COPY ./config /config
+RUN curl -sL "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl-convert" > /usr/local/bin/kubectl-convert && \
+    chmod +x /usr/local/bin/kubectl-convert
 RUN curl -sL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v4.4.1/kustomize_v4.4.1_linux_amd64.tar.gz" | \
-    tar xvzf - -C /usr/bin/ kustomize
-RUN dnf -y install git
+    tar xvzf - -C /usr/local/bin/ kustomize
+RUN kustomize build /config/default > /deploy.yaml
 
-ENTRYPOINT ["/crane"]
+FROM registry.redhat.io/ubi8/ubi:latest
+COPY --from=crane-bin  /build/crane /usr/local/bin/crane
+COPY --from=cli-bin    /usr/bin/oc /usr/bin/oc
+COPY --from=cli-bin    /usr/bin/kubectl /usr/bin/kubectl
+COPY --from=cli-bin    /usr/local/bin/kustomize /usr/local/bin/kustomize
+COPY --from=cli-bin    /usr/local/bin/kubectl-convert /usr/local/bin/kubectl-convert
+COPY --from=cli-bin    /deploy.yaml /deploy.yaml
+
+RUN crane plugin-manager add OpenShiftPlugin --version v0.0.3
+
+RUN dnf -y install git
+ENTRYPOINT ["/usr/local/bin/crane"]
