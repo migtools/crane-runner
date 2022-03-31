@@ -67,8 +67,8 @@ spec:
           --destination-context=$(params.dest-context) \
           --pvc-name $(params.source-pvc-name):$(params.dest-pvc-name) \
           --pvc-namespace $(params.source-namespace):$(params.dest-namespace) \
-          --dest-pvc-storage-class-name $(params.dest-storage-class-name) \
-          --pvc-requests-storage $(params.dest-pvc-capacity) \
+          --dest-storage-class $(params.dest-storage-class-name) \
+          --dest-storage-requests $(params.dest-pvc-capacity) \
           --endpoint $(params.endpoint-type)
       env:
         - name: KUBECONFIG
