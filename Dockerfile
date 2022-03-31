@@ -8,7 +8,7 @@ RUN curl -sL "https://github.com/kubernetes-sigs/kustomize/releases/download/kus
     tar xvzf - -C /usr/local/bin/ kustomize
 RUN kustomize build /config/default > /deploy.yaml
 
-FROM registry.redhat.io/ubi8/ubi:latest
+FROM registry.access.redhat.com/ubi8/ubi:latest
 COPY --from=crane-bin  /usr/local/bin/crane /usr/local/bin/crane
 COPY --from=cli-bin    /usr/bin/oc /usr/bin/oc
 COPY --from=cli-bin    /usr/bin/kubectl /usr/bin/kubectl
