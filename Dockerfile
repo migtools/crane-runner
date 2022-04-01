@@ -16,7 +16,9 @@ COPY --from=cli-bin    /usr/local/bin/kustomize /usr/local/bin/kustomize
 COPY --from=cli-bin    /usr/local/bin/kubectl-convert /usr/local/bin/kubectl-convert
 COPY --from=cli-bin    /deploy.yaml /deploy.yaml
 
+ENV DEFAULT_REPO_URL="https://raw.githubusercontent.com/konveyor/crane-plugins/main/index.yml"
 RUN crane plugin-manager add OpenShiftPlugin --version v0.0.3
+RUN crane plugin-manager add ImagestreamPlugin
 
 RUN dnf -y install git
 ENTRYPOINT ["/usr/local/bin/crane"]
