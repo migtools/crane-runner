@@ -48,7 +48,7 @@ spec:
       description: |
         The name of the storage class to use in the destination cluster.
       default: ""
-    - name: dest-pvc-capacity
+    - name: dest-storage-requests
       type: string
       description: |
         Size of the destination volume to create.
@@ -62,14 +62,26 @@ spec:
     - name: crane-transfer-pvc
       image: quay.io/konveyor/crane-runner:latest
       script: |
+        DEST_PVC_NAME="${DEST_PVC_NAME:-$(params.source-pvc-name)}"
+        DEST_NAMESPACE="${DEST_NAMESPACE:-$(params.source-namespace)}"
+
+        EXTRA_ARGS=""
+        if [ ! -z "${DEST_STORAGE_CLASS_NAME}" ]; then
+          EXTRA_ARGS+=" --dest-storage-class=${DEST_STORAGE_CLASS_NAME}"
+        fi
+        if [ ! -z "${DEST_STORAGE_REQUESTS}" ]; then
+          EXTRA_ARGS+=" --dest-storage-requests=${DEST_STORAGE_REQUESTS}"
+        fi
+        if [ ! -z "${ENDPOINT_TYPE}" ]; then
+          EXTRA_ARGS+=" --endpoint=${ENDPOINT_TYPE}"
+        fi
+
         crane transfer-pvc \
           --source-context=$(params.source-context) \
           --destination-context=$(params.dest-context) \
-          --pvc-name $(params.source-pvc-name):$(params.dest-pvc-name) \
-          --pvc-namespace $(params.source-namespace):$(params.dest-namespace) \
-          --dest-storage-class $(params.dest-storage-class-name) \
-          --dest-storage-requests $(params.dest-pvc-capacity) \
-          --endpoint $(params.endpoint-type)
+          --pvc-name $(params.source-pvc-name):${DEST_PVC_NAME} \
+          --pvc-namespace $(params.source-namespace):${DEST_NAMESPACE} \
+          ${EXTRA_ARGS}
       env:
         - name: KUBECONFIG
           value: $(workspaces.kubeconfig.path)/kubeconfig
@@ -79,8 +91,8 @@ spec:
           value: $(params.dest-namespace)
         - name: DEST_STORAGE_CLASS_NAME
           value: $(params.dest-storage-class-name)
-        - name: DEST_PVC_CAPACITY
-          value: $(params.dest-pvc-capacity)
+        - name: DEST_STORAGE_REQUESTS
+          value: $(params.dest-storage-requests)
         - name: ENDPOINT_TYPE
           value: $(params.endpoint-type)
   workspaces:
