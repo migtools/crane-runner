@@ -79,7 +79,7 @@ You must upload your kubeconfig as a secret. This will be used by the
 ClusterTasks to migrate the application.
 
 ```bash
-kubectl config view --flatten | kubectl --context dest --namespace guestbook create secret generic kubeconfig --from-file=config=/dev/stdin
+kubectl config view --flatten | kubectl --context dest --namespace guestbook create secret generic kubeconfig --from-file=kubeconfig=/dev/stdin
 ```
 
 # Add Data
@@ -121,13 +121,15 @@ spec:
         name: crane-transfer-pvc
         kind: ClusterTask
       params:
-      - name: src-context
+      - name: source-context
         value: src
       - name: dest-context
         value: dest
       - name: dest-namespace
         value: guestbook
-      - name: pvc-name
+      - name: source-namespace
+        value: guestbook
+      - name: source-pvc-name
         value: redis-data01
       - name: endpoint-type
         value: nginx-ingress
@@ -141,13 +143,15 @@ spec:
         name: crane-transfer-pvc
         kind: ClusterTask
       params:
-      - name: src-context
+      - name: source-context
         value: src
       - name: dest-context
         value: dest
       - name: dest-namespace
         value: guestbook
-      - name: pvc-name
+      - name: source-namespace
+        value: guestbook
+      - name: source-pvc-name
         value: redis-data02
       - name: endpoint-type
         value: nginx-ingress
