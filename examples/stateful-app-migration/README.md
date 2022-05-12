@@ -131,8 +131,6 @@ spec:
         value: guestbook
       - name: source-pvc-name
         value: redis-data01
-      - name: dest-pvc-name
-        value: redis-data01
       - name: endpoint-type
         value: nginx-ingress
       workspaces:
@@ -154,8 +152,6 @@ spec:
       - name: source-namespace
         value: guestbook
       - name: source-pvc-name
-        value: redis-data02
-      - name: dest-pvc-name
         value: redis-data02
       - name: endpoint-type
         value: nginx-ingress
