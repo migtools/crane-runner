@@ -1,8 +1,7 @@
 ---
 name: Bug Report
 about: Generic bug report template
-title: "[BUG] ..."
-labels: bug
+labels: kind/bug
 
 ---
 

@@ -1,8 +1,7 @@
 ---
 name: Hackathon Bug
 about: Template for filing bugs during a hackathon session
-title: "[BUG] ..."
-labels: bug, hackathon
+labels: kind/bug, hackathon
 assignees: eriknelson
 
 ---
