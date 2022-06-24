@@ -72,7 +72,7 @@ which tasks will communicate with the "source" and "destination" clusters.
 
 
 ```bash
-kubectl config view --flatten | kubectl --context dest --namespace guestbook create secret generic kubeconfig --from-file=config=/dev/stdin
+kubectl config view --flatten | kubectl --context dest --namespace guestbook create secret generic kubeconfig --from-file=kubeconfig=/dev/stdin
 ```
 
 Now that you have a namespace and kubeconfig, you will reserve a
@@ -244,7 +244,7 @@ metadata:
   generateName: stateless-app-mirror-kubectl-apply-
 spec:
   params:
-  - name: dest-context
+  - name: context
     value: dest
   taskRef:
     name: kubectl-apply-files
