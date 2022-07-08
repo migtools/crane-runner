@@ -1,0 +1,36 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: oc-registry-info
+  annotations:
+    description: |
+      Get registry info from an OpenShift cluster.
+spec:
+  params:
+    - name: context
+      type: string
+      description: |
+        The name of the context from kubeconfig to ask for registry info.
+  results:
+    - name: internal
+      description: 
+        Internal registry URL.
+    - name: public
+      description: 
+        Public registry URL.
+  steps:
+    - name: oc-registry-info
+      image: quay.io/konveyor/crane-runner:latest
+      script: |
+        oc --context="$(params.context)" registry info --internal | tee $(results.internal.path)
+        ( oc --context="$(params.context)" registry info --public || \
+          oc --context="$(params.context)" get route default-route -n openshift-image-registry --template='{{ .spec.host }}' || \
+          oc --context="$(params.context)" get route docker-registry -n default --template='{{ .spec.host }}' \
+        ) | tee $(results.public.path)
+      env:
+        - name: KUBECONFIG
+          value: $(workspaces.kubeconfig.path)/kubeconfig
+  workspaces:
+    - name: kubeconfig
+      description: |
+        The kubeconfig for accessing the cluster.

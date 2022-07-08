@@ -12,3 +12,4 @@ resources:
   - crane-kustomize-init.yaml
   - kubectl-apply-kustomize.yaml
   - kubectl-apply-files.yaml
+  - oc-registry-info.yaml
