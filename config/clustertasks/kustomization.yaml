@@ -6,6 +6,7 @@ resources:
   - crane-kubeconfig-generator.yaml
   - crane-export.yaml
   - crane-transform.yaml
+  - crane-skopeo-sync-gen.yaml
   - crane-apply.yaml
   - crane-transfer-pvc.yaml
   - crane-kubectl-scale-down.yaml
