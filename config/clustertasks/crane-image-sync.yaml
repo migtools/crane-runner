@@ -1,0 +1,79 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: crane-image-sync
+  annotations:
+    description: |
+      Sync the internal images of one cluster's registry to another.
+spec:
+  params:
+    - name: src-context
+      type: string
+    - name: src-internal-registry-url
+      type: string
+      description: |
+        This is the internal registry url (ie. image-registry.openshift-image-registry.svc:5000).
+    - name: src-public-registry-url
+      type: string
+      description: |
+        This is the public registry url.
+    - name: dest-context
+      type: string
+    - name: dest-public-registry-url
+      type: string
+      description: |
+        This is the public registry url.
+    - name: dest-namespace
+      type: string
+  steps:
+    - name: crane-skopeo-sync-gen
+      image: quay.io/konveyor/crane-runner:latest
+      script: |
+        set -e
+        set -o pipefail
+        set -x
+
+        crane skopeo-sync-gen \
+          --export-dir="$(workspaces.export.path)" \
+          --internal-registry-url="$(params.src-internal-registry-url)" \
+          --registry-url="$(params.src-public-registry-url)" | tee "$(workspaces.skopeo.path)/source.yaml"
+    - name: skopeo-sync
+      image: quay.io/konveyor/crane-runner:latest
+      script: |
+        set -e
+        set -o pipefail
+        set -x
+
+        export SRC_USER="$(oc --context "$(params.src-context)" whoami)"
+        export SRC_PASS="$(oc --context "$(params.src-context)" whoami -t)"
+        export DEST_USER="$(oc --context "$(params.dest-context)" whoami)"
+        export DEST_PASS="$(oc --context "$(params.dest-context)" whoami -t)"
+
+        skopeo sync \
+          --src yaml \
+          --src-creds ${SRC_USER}:${SRC_PASS} \
+          --dest docker \
+          --dest-creds ${DEST_USER}:${DEST_PASS} \
+          "$(workspaces.skopeo.path)/source.yaml" \
+          "$(params.dest-public-registry-url)/$(params.dest-namespace)"
+      env:
+        - name: KUBECONFIG
+          value: $(workspaces.kubeconfig.path)/kubeconfig
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: container-storage
+  volumes:
+    - name: container-storage
+      emptyDir: {}
+  workspaces:
+    - name: export
+      description: |
+        This is the folder where the results of crane export were stored.
+      mountPath: /var/crane/export
+    - name: skopeo
+      description: |
+        This is the folder where we will store the results of crane skopeo-sync-gen.
+      mountPath: /var/crane/skopeo
+    - name: kubeconfig
+      description: |
+        The kubeconfig for accessing the cluster.
