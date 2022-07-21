@@ -22,11 +22,18 @@ spec:
     - name: oc-registry-info
       image: quay.io/konveyor/crane-runner:latest
       script: |
-        oc --context="$(params.context)" registry info --internal | tee $(results.internal.path)
-        ( oc --context="$(params.context)" registry info --public || \
+        set -e
+        set -o pipefail
+        set -x
+
+        internal=$(oc --context="$(params.context)" registry info --internal)
+        public=$(oc --context="$(params.context)" registry info --public || \
           oc --context="$(params.context)" get route default-route -n openshift-image-registry --template='{{ .spec.host }}' || \
           oc --context="$(params.context)" get route docker-registry -n default --template='{{ .spec.host }}' \
-        ) | tee $(results.public.path)
+        )
+
+        echo -n "${internal}" | tee $(results.internal.path)
+        echo -n "${public}" | tee $(results.public.path)
       env:
         - name: KUBECONFIG
           value: $(workspaces.kubeconfig.path)/kubeconfig
