@@ -20,6 +20,10 @@ spec:
     - name: crane-transform
       image: quay.io/konveyor/crane-runner:latest
       script: |
+        set -e
+        set -o pipefail
+        set -x
+
         OPTIONAL_FLAG_VALUES="${OPTIONAL_FLAG_VALUES:-$(params.optional-flags)}"
         if [ ! -z "${OPTIONAL_FLAG_VALUES}" ]; then
           OPTIONAL_FLAGS="--optional-flags=${OPTIONAL_FLAG_VALUES}"
