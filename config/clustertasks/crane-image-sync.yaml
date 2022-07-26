@@ -9,6 +9,8 @@ spec:
   params:
     - name: src-context
       type: string
+      description: |
+        Name of the context used for accessing the source cluster.
     - name: src-internal-registry-url
       type: string
       description: |
@@ -17,14 +19,28 @@ spec:
       type: string
       description: |
         This is the public registry url.
+    - name: src-tls-verify
+      type: string
+      default: 'true'
+      description: |
+        Require HTTPS and verify certificates when talking to the container registry or daemon.
     - name: dest-context
       type: string
+      description: |
+        Name of the context used for accessing the destination cluster.
     - name: dest-public-registry-url
       type: string
       description: |
-        This is the public registry url.
+        This is the public registry url of the destination cluster.
     - name: dest-namespace
       type: string
+      description: |
+        The namespace where the images should be synced.
+    - name: dest-tls-verify
+      type: string
+      default: 'true'
+      description: |
+        Require HTTPS and verify certificates when talking to the container registry or daemon.
   steps:
     - name: crane-skopeo-sync-gen
       image: quay.io/konveyor/crane-runner:latest
@@ -35,8 +51,13 @@ spec:
 
         crane skopeo-sync-gen \
           --export-dir="$(workspaces.export.path)" \
-          --internal-registry-url="$(params.src-internal-registry-url)" \
-          --registry-url="$(params.src-public-registry-url)" | tee "$(workspaces.skopeo.path)/source.yaml"
+          --internal-registry-url=${SRC_INTERNAL_URL} \
+          --registry-url=${SRC_PUBLIC_URL} | tee "$(workspaces.skopeo.path)/source.yaml"
+      env:
+        - name: SRC_INTERNAL_URL
+          value: $(params.src-internal-registry-url)
+        - name: SRC_PUBLIC_URL
+          value: $(params.src-public-registry-url)
     - name: skopeo-sync
       image: quay.io/konveyor/crane-runner:latest
       script: |
@@ -44,27 +65,32 @@ spec:
         set -o pipefail
         set -x
 
-        export SRC_USER="$(oc --context "$(params.src-context)" whoami)"
-        export SRC_PASS="$(oc --context "$(params.src-context)" whoami -t)"
-        export DEST_USER="$(oc --context "$(params.dest-context)" whoami)"
-        export DEST_PASS="$(oc --context "$(params.dest-context)" whoami -t)"
-
         skopeo sync \
           --src yaml \
-          --src-creds ${SRC_USER}:${SRC_PASS} \
+          --src-username "$(oc --context ${SRC_CONTEXT} whoami)" \
+          --src-password "$(oc --context ${SRC_CONTEXT} whoami -t)" \
+          --src-tls-verify=${SRC_TLS_VERIFY} \
           --dest docker \
-          --dest-creds ${DEST_USER}:${DEST_PASS} \
+          --dest-username "$(oc --context ${DEST_CONTEXT} whoami)" \
+          --dest-password "$(oc --context ${DEST_CONTEXT} whoami -t)" \
+          --dest-tls-verify=${DEST_TLS_VERIFY} \
           "$(workspaces.skopeo.path)/source.yaml" \
-          "$(params.dest-public-registry-url)/$(params.dest-namespace)"
+          "${DEST_REGISTRY}/${DEST_NAMESPACE}"
       env:
         - name: KUBECONFIG
           value: $(workspaces.kubeconfig.path)/kubeconfig
-      volumeMounts:
-        - mountPath: /var/lib/containers
-          name: container-storage
-  volumes:
-    - name: container-storage
-      emptyDir: {}
+        - name: SRC_CONTEXT
+          value: $(params.src-context)
+        - name: SRC_TLS_VERIFY
+          value: $(params.src-tls-verify)
+        - name: DEST_CONTEXT
+          value: $(params.dest-context)
+        - name: DEST_TLS_VERIFY
+          value: $(params.dest-tls-verify)
+        - name: DEST_REGISTRY
+          value: $(params.dest-public-registry-url)
+        - name: DEST_NAMESPACE
+          value: $(params.dest-namespace)
   workspaces:
     - name: export
       description: |
