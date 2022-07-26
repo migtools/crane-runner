@@ -30,6 +30,10 @@ spec:
     - name: kustomize-namespace
       image: quay.io/konveyor/crane-runner:latest
       script: |
+        set -e
+        set -o pipefail
+        set -x
+
         # Copy apply resources into kustomize workspace
         cp -r "$(workspaces.apply.path)/resources/$(params.source-namespace)/." "$(workspaces.kustomize.path)"
 

@@ -25,6 +25,10 @@ spec:
     - name: kubectl-scale-down
       image: quay.io/konveyor/crane-runner:latest
       script: |
+        set -e
+        set -o pipefail
+        set -x
+
         #!/bin/bash
         count=$(kubectl get --context "$(params.context)" "$(params.resource-type)" --namespace "$(params.namespace)" 2> /dev/null | wc -l)
         if [ $count -ne "0" ]; then

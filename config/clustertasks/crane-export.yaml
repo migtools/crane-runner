@@ -25,6 +25,10 @@ spec:
     - name: crane-export
       image: quay.io/konveyor/crane-runner:latest
       script: |
+        set -e
+        set -o pipefail
+        set -x
+
         crane export \
           --context="$(params.context)" \
           --namespace="$(params.namespace)" \

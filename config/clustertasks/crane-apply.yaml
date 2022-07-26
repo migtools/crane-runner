@@ -10,6 +10,10 @@ spec:
     - name: crane-apply
       image: quay.io/konveyor/crane-runner:latest
       script: |
+        set -e
+        set -o pipefail
+        set -x
+
         crane apply \
           --export-dir=$(workspaces.export.path) \
           --transform-dir=$(workspaces.transform.path) \

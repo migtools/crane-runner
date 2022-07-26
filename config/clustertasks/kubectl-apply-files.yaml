@@ -15,6 +15,10 @@ spec:
     - name: kubectl-apply
       image: quay.io/konveyor/crane-runner:latest
       script: |
+        set -e
+        set -o pipefail
+        set -x
+
         if [ "$(workspaces.kubeconfig.bound)" == "true" ] ; then
           export KUBECONFIG="$(workspaces.kubeconfig.path)/kubeconfig"
         fi

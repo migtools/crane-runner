@@ -62,6 +62,10 @@ spec:
     - name: crane-transfer-pvc
       image: quay.io/konveyor/crane-runner:latest
       script: |
+        set -e
+        set -o pipefail
+        set -x
+
         DEST_PVC_NAME="${DEST_PVC_NAME:-$(params.source-pvc-name)}"
         DEST_NAMESPACE="${DEST_NAMESPACE:-$(params.source-namespace)}"
 
