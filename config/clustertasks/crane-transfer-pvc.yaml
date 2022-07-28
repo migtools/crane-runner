@@ -58,6 +58,11 @@ spec:
       description: |
         The name of the networking endpoint to be used for ingress traffic in the destination cluster
       default: ""
+    - name: verify
+      type: string
+      description: |
+        Enable checksum verification (--verify). Valid values are "true" or "false".
+      default: "false"
   steps:
     - name: crane-transfer-pvc
       image: quay.io/konveyor/crane-runner:latest
@@ -79,6 +84,9 @@ spec:
         if [ ! -z "${ENDPOINT_TYPE}" ]; then
           EXTRA_ARGS+=" --endpoint=${ENDPOINT_TYPE}"
         fi
+        if [ "${VERIFY}" == "true" ]; then
+          EXTRA_ARGS+=" --verify"
+        fi
 
         crane transfer-pvc \
           --source-context=$(params.source-context) \
@@ -99,6 +107,8 @@ spec:
           value: $(params.dest-storage-requests)
         - name: ENDPOINT_TYPE
           value: $(params.endpoint-type)
+        - name: VERIFY
+          value: $(params.verify)
   workspaces:
     - name: kubeconfig
       description: |
