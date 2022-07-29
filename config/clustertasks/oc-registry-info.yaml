@@ -11,6 +11,11 @@ spec:
       type: string
       description: |
         The name of the context from kubeconfig to ask for registry info.
+    - name: strict
+      type: string
+      default: "false"
+      description: |
+        Should the task fail if the internal|public registry URL cannot be found.
   results:
     - name: internal
       description: 
@@ -23,20 +28,24 @@ spec:
       image: quay.io/konveyor/crane-runner:latest
       script: |
         set -e
-        set -o pipefail
         set -x
 
-        internal=$(oc --context="$(params.context)" registry info --internal)
+        internal=$(oc --context="$(params.context)" registry info --internal || echo "")
         public=$(oc --context="$(params.context)" registry info --public || \
           oc --context="$(params.context)" get route default-route -n openshift-image-registry --template='{{ .spec.host }}' || \
-          oc --context="$(params.context)" get route docker-registry -n default --template='{{ .spec.host }}' \
+          oc --context="$(params.context)" get route docker-registry -n default --template='{{ .spec.host }}' || \
+          echo ""
         )
 
+        [ "${STRICT_CHECK}" == "true" ] && [ -z "${internal}" ] && exit 2
+        [ "${STRICT_CHECK}" == "true" ] && [ -z "${public}" ] && exit 2
         echo -n "${internal}" | tee $(results.internal.path)
         echo -n "${public}" | tee $(results.public.path)
       env:
         - name: KUBECONFIG
           value: $(workspaces.kubeconfig.path)/kubeconfig
+        - name: STRICT_CHECK
+          value: $(params.strict)
   workspaces:
     - name: kubeconfig
       description: |
