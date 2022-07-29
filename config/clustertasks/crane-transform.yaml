@@ -24,7 +24,6 @@ spec:
         set -o pipefail
         set -x
 
-        OPTIONAL_FLAG_VALUES="${OPTIONAL_FLAG_VALUES:-$(params.optional-flags)}"
         if [ ! -z "${OPTIONAL_FLAG_VALUES}" ]; then
           OPTIONAL_FLAGS="--optional-flags=${OPTIONAL_FLAG_VALUES}"
         fi
@@ -40,6 +39,9 @@ spec:
         if [ "$(workspaces.ignored-patches.bound)" == "true" ]; then
           find $(workspaces.ignored-patches.path)
         fi
+      env:
+        - name: OPTIONAL_FLAG_VALUES
+          value: $(params.optional-flags)
   workspaces:
     - name: export
       description: |
