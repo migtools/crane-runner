@@ -16,8 +16,8 @@ COPY --from=cli-bin    /usr/local/bin/kustomize /usr/local/bin/kustomize
 COPY --from=cli-bin    /usr/local/bin/kubectl-convert /usr/local/bin/kubectl-convert
 COPY --from=cli-bin    /deploy.yaml /deploy.yaml
 
-RUN crane plugin-manager add OpenShiftPlugin --version v0.0.3
-RUN crane plugin-manager add ImageStreamPlugin
+RUN crane plugin-manager add --global OpenShiftPlugin
+RUN crane plugin-manager add --global ImageStreamPlugin
 
 RUN dnf -y install git skopeo
 ENTRYPOINT ["/usr/local/bin/crane"]
